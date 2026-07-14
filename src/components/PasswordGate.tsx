@@ -2,7 +2,6 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { Lock, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ensureAnonymousSession } from "@/lib/supabase";
 
 // Change the site password here.
 const SITE_PASSWORD = "SwarFusion@108";
@@ -12,27 +11,19 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
   const [unlocked, setUnlocked] = useState<boolean | null>(null);
   const [value, setValue] = useState("");
   const [error, setError] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    const stored = sessionStorage.getItem(SESSION_KEY) === "1";
-    setUnlocked(stored);
-    if (stored) {
-      ensureAnonymousSession();
-    }
+    setUnlocked(sessionStorage.getItem(SESSION_KEY) === "1");
   }, []);
 
-  const handleSubmit = async (e: FormEvent) => {
+  const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (value !== SITE_PASSWORD) {
       setError(true);
       return;
     }
-    setSubmitting(true);
     setError(false);
-    await ensureAnonymousSession();
     sessionStorage.setItem(SESSION_KEY, "1");
-    setSubmitting(false);
     setUnlocked(true);
   };
 
@@ -86,9 +77,9 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
             </div>
           )}
 
-          <Button type="submit" className="w-full gap-2" disabled={submitting || !value}>
+          <Button type="submit" className="w-full gap-2" disabled={!value}>
             <Sparkles className="h-4 w-4" />
-            {submitting ? "Unlocking…" : "Unlock SwarFusion"}
+            Unlock SwarFusion
           </Button>
         </form>
       </div>
