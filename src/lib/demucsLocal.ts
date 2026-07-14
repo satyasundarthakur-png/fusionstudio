@@ -166,8 +166,8 @@ export async function separateVocalsLocal(
 
   const toBuffer = (l: Float32Array, r: Float32Array) => {
     const buf = ctx.createBuffer(2, l.length, TARGET_SAMPLE_RATE);
-    buf.copyToChannel(l as unknown as Float32Array, 0);
-    buf.copyToChannel(r as unknown as Float32Array, 1);
+    buf.copyToChannel(l as any, 0);
+    buf.copyToChannel(r as any, 1);
     return buf;
   };
 
