@@ -115,7 +115,7 @@ export async function separateVocalsLocal(
   // a generous ceiling instead of leaving the person staring at a screen
   // that looks hung. The caller (useAudioMixer) already falls back
   // gracefully to an un-separated mix on any error from this function.
-  const SEPARATION_TIMEOUT_MS = 6 * 60 * 1000; // 6 minutes
+  const SEPARATION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
   const timeout = new Promise<never>((_, reject) => {
     setTimeout(
       () => reject(new Error("Local vocal separation timed out (device likely too slow for in-browser separation).")),
