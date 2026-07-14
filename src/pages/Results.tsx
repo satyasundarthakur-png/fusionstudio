@@ -1,19 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import jsPDF from "jspdf";
-import { FileDown, RefreshCw, Library } from "lucide-react";
+import { FileDown, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FusionCard from "@/components/FusionCard";
 import VoiceCoach from "@/components/VoiceCoach";
 import { sessionStore } from "@/lib/sessionStore";
-import { ensureAnonymousSession, saveFusion } from "@/lib/supabase";
-import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 
 export default function Results() {
   const navigate = useNavigate();
-  const { upload } = useSupabaseStorage();
-  const [saving, setSaving] = useState(false);
-  const [saved, setSaved] = useState(false);
 
   const input = sessionStore.input;
   const result = sessionStore.result;
@@ -25,47 +20,6 @@ export default function Results() {
   if (result.variants.length === 0) return null;
 
   const songName = input.trackMeta?.name?.replace(/\.[^/.]+$/, "") ?? "your track";
-
-  const handleSaveSession = async () => {
-    setSaving(true);
-    try {
-      const session = await ensureAnonymousSession();
-      const user = session?.user;
-      if (!user) { return; }
-
-      const uploadedVariants = await Promise.all(
-        result.variants.map(async (v) => {
-          const up = await upload("fusions", v.blob, user.id, `${v.variant}.wav`);
-          return { name: v.label, url: up?.signedUrl ?? v.url, path: up?.path ?? "", effect: v.variant, duration: v.durationSec };
-        })
-      );
-
-      let instrumentalUrl = result.instrumentalUrl;
-      let instrumentalPath = input.trackPath;
-      if (result.instrumentalBlob) {
-        const instUpload = await upload("fusions", result.instrumentalBlob, user.id, "instrumental.wav");
-        instrumentalUrl = instUpload?.signedUrl ?? result.instrumentalUrl;
-        instrumentalPath = instUpload?.path ?? null;
-      }
-
-      await saveFusion({
-        user_id: user.id,
-        voice_url: input.voiceUrl,
-        voice_path: input.voicePath,
-        track_url: input.trackUrl,
-        track_path: input.trackPath,
-        instrumental_url: instrumentalUrl,
-        instrumental_path: instrumentalPath,
-        variants: uploadedVariants,
-        settings: { voice_vol: input.voiceVolumePct, music_vol: input.musicVolumePct, languages: input.languages, model: input.separationModel, quality: input.quality },
-        ai_tips: result.aiTips,
-      });
-
-      setSaved(true);
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const handleExportPdf = () => {
     const doc = new jsPDF();
@@ -109,11 +63,6 @@ export default function Results() {
         <div className="flex gap-2 shrink-0">
           <Button variant="outline" size="sm" onClick={handleExportPdf}>
             <FileDown className="h-3.5 w-3.5" /> Export PDF
-          </Button>
-          <Button size="sm" onClick={handleSaveSession} disabled={saving || saved}
-            className={saved ? "bg-green-600 text-white hover:bg-green-600" : ""}>
-            <Library className="h-3.5 w-3.5" />
-            {saving ? "Saving…" : saved ? "Saved!" : "Save to Library"}
           </Button>
         </div>
       </div>

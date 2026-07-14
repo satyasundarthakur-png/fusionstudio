@@ -12,7 +12,7 @@ const STEPS: StepDef[] = [
   {
     id: "upload",
     label: "Uploading files",
-    description: "Sending your voice and track to Supabase Storage.",
+    description: "Preparing your voice and track for processing.",
     icon: UploadCloud,
   },
   {

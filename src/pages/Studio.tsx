@@ -26,8 +26,6 @@ import LanguageTags from "@/components/LanguageTags";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { createLiveEffectMonitor, type EffectPreset, type FusionVariantKey } from "@/lib/audioEngine";
 import { sessionStore } from "@/lib/sessionStore";
-import { ensureAnonymousSession } from "@/lib/supabase";
-import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 
 function formatTimer(sec: number) {
   const m = Math.floor(sec / 60);
@@ -51,7 +49,6 @@ function StepTitle({ step, children }: { step: string; children: React.ReactNode
 export default function Studio() {
   const navigate = useNavigate();
   const recorder = useVoiceRecorder();
-  const { upload } = useSupabaseStorage();
 
   const [effectPreset, setEffectPreset] = useState<EffectPreset>("clean");
   const monitorRef = useRef<ReturnType<typeof createLiveEffectMonitor> | null>(null);
@@ -118,26 +115,16 @@ export default function Studio() {
     setSubmitError(null);
 
     try {
-      const session = await ensureAnonymousSession();
-      const user = session?.user;
-      if (!user) {
-        throw new Error("Could not start a session. Please refresh and try again.");
-      }
-
-      const voiceUpload = await upload("voice", recorder.audioBlob, user.id, "voice.webm");
-      const trackUpload = await upload("tracks", trackFile, user.id, trackFile.name);
-
-      if (!voiceUpload?.signedUrl || !trackUpload?.signedUrl) {
-        throw new Error("Could not upload voice or track file to Supabase Storage.");
-      }
+      const voiceUrl = URL.createObjectURL(recorder.audioBlob);
+      const trackUrl = URL.createObjectURL(trackFile);
 
       sessionStore.setInput({
         voiceBlob: recorder.audioBlob,
-        voiceUrl: voiceUpload.signedUrl,
-        voicePath: voiceUpload.path,
+        voiceUrl,
+        voicePath: null,
         trackFile,
-        trackUrl: trackUpload.signedUrl,
-        trackPath: trackUpload.path,
+        trackUrl,
+        trackPath: null,
         trackMeta: {
           name: trackFile.name,
           sizeMB: trackFile.size / (1024 * 1024),

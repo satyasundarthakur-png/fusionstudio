@@ -13,12 +13,8 @@ import Home from "@/pages/Home";
 import Studio from "@/pages/Studio";
 import Processing from "@/pages/Processing";
 import Results from "@/pages/Results";
-import Library from "@/pages/Library";
 
-const NAV_LINKS = [
-  { to: "/studio", label: "Studio" },
-  { to: "/library", label: "Library" },
-];
+const NAV_LINKS = [{ to: "/studio", label: "Studio" }];
 
 function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -131,18 +127,11 @@ const resultsRoute = createRoute({
   component: Results,
 });
 
-const libraryRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/library",
-  component: Library,
-});
-
 const routeTree = rootRoute.addChildren([
   indexRoute,
   studioRoute,
   processingRoute,
   resultsRoute,
-  libraryRoute,
 ]);
 
 export const router = createRouter({ routeTree });

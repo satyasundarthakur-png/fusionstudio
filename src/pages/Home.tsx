@@ -93,9 +93,6 @@ export default function Home() {
               <ArrowRight className="h-4 w-4" />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/library">My Fusions</Link>
-          </Button>
         </div>
       </section>
 
