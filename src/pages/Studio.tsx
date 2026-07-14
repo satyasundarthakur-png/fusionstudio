@@ -37,10 +37,15 @@ function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function StepTitle({ step, children }: { step: string; children: React.ReactNode }) {
+function StepTitle({ step, accent, children }: { step: string; accent: string; children: React.ReactNode }) {
   return (
     <div className="flex items-center gap-2.5">
-      <span className="step-badge">{step}</span>
+      <span
+        className="step-badge"
+        style={{ background: `${accent}1f`, borderColor: `${accent}59`, color: accent }}
+      >
+        {step}
+      </span>
       <span className="text-base font-semibold text-white/90 tracking-tight">{children}</span>
     </div>
   );
@@ -149,9 +154,19 @@ export default function Studio() {
   const isRecording = recorder.state === "recording";
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10 space-y-6">
+    <div className="relative max-w-5xl mx-auto px-4 py-10 space-y-6 overflow-hidden">
+      {/* Ambient animated mesh, consistent with the homepage */}
+      <div
+        className="mesh-blob-1 pointer-events-none absolute -top-16 left-[10%] h-[320px] w-[320px] rounded-full blur-3xl -z-10"
+        style={{ background: "radial-gradient(circle, rgba(239,159,39,0.10) 0%, transparent 70%)" }}
+      />
+      <div
+        className="mesh-blob-2 pointer-events-none absolute top-32 -right-20 h-[300px] w-[300px] rounded-full blur-3xl -z-10"
+        style={{ background: "radial-gradient(circle, rgba(212,83,138,0.09) 0%, transparent 70%)" }}
+      />
+
       {/* Page header */}
-      <div className="mb-2">
+      <div className="fade-up mb-2">
         <h1 className="font-logo text-3xl mb-1.5 gradient-text-saffron w-fit">Voice Studio</h1>
         <p className="text-white/45 text-sm">
           Record over any track you upload — AI will separate the instrumental and mix your voice into studio-quality fusions.
@@ -161,9 +176,12 @@ export default function Studio() {
       {/* Step 1 + 2 row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         {/* Record */}
-        <Card className={isRecording ? "border-red-500/30 shadow-[0_0_24px_rgba(220,38,38,0.1)]" : ""}>
+        <Card
+          className={`fade-up ${isRecording ? "border-red-500/30 shadow-[0_0_24px_rgba(220,38,38,0.1)]" : ""}`}
+          style={{ animationDelay: "0.08s" }}
+        >
           <CardHeader>
-            <StepTitle step="1">Record your voice</StepTitle>
+            <StepTitle step="1" accent="#ef9f27">Record your voice</StepTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-xl overflow-hidden border border-white/[0.06] bg-black/30">
@@ -234,9 +252,9 @@ export default function Studio() {
         </Card>
 
         {/* Upload */}
-        <Card>
+        <Card className="fade-up" style={{ animationDelay: "0.16s" }}>
           <CardHeader>
-            <StepTitle step="2">Upload a track</StepTitle>
+            <StepTitle step="2" accent="#d4538a">Upload a track</StepTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div
@@ -281,9 +299,9 @@ export default function Studio() {
       </div>
 
       {/* Step 3 — Fusion settings */}
-      <Card>
+      <Card className="fade-up" style={{ animationDelay: "0.24s" }}>
         <CardHeader>
-          <StepTitle step="3">Fusion settings</StepTitle>
+          <StepTitle step="3" accent="#4fb8a8">Fusion settings</StepTitle>
         </CardHeader>
         <CardContent className="space-y-7">
           {/* Volume sliders */}
