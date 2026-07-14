@@ -60,7 +60,7 @@ export default function Studio() {
 
   const [voiceVolumePct, setVoiceVolumePct] = useState(75);
   const [musicVolumePct, setMusicVolumePct] = useState(65);
-  const [separationModel, setSeparationModel] = useState<"demucs" | "spleeter" | "skip">("demucs");
+  const [separationModel, setSeparationModel] = useState<"demucs" | "skip">("demucs");
   const [quality, setQuality] = useState<"high" | "lossless" | "standard">("high");
   const [variantMode, setVariantMode] = useState<"all" | "top3" | "custom">("all");
   const [customVariants, setCustomVariants] = useState<FusionVariantKey[]>(["studio", "cinematic", "acoustic"]);
@@ -121,10 +121,8 @@ export default function Studio() {
       sessionStore.setInput({
         voiceBlob: recorder.audioBlob,
         voiceUrl,
-        voicePath: null,
         trackFile,
         trackUrl,
-        trackPath: null,
         trackMeta: {
           name: trackFile.name,
           sizeMB: trackFile.size / (1024 * 1024),
@@ -313,7 +311,6 @@ export default function Studio() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="demucs">Demucs — in-browser (recommended)</SelectItem>
-                  <SelectItem value="spleeter">Spleeter 2-stem — in-browser</SelectItem>
                   <SelectItem value="skip">Skip separation</SelectItem>
                 </SelectContent>
               </Select>
