@@ -89,6 +89,15 @@ export function useVoiceRecorder() {
     setState("idle");
   }, []);
 
+  /** Use an uploaded pre-recorded voice file instead of recording live. */
+  const setUploadedAudio = useCallback((file: File) => {
+    setError(null);
+    setAudioBlob(file);
+    setAudioUrl(URL.createObjectURL(file));
+    setElapsedSec(0);
+    setState("stopped");
+  }, []);
+
   useEffect(() => {
     return () => {
       cleanupTimer();
@@ -107,5 +116,6 @@ export function useVoiceRecorder() {
     start,
     stop,
     restart,
+    setUploadedAudio,
   };
 }

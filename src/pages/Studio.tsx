@@ -70,6 +70,7 @@ export default function Studio() {
   const [submitting, setSubmitting] = useState(false);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const voiceFileInputRef = useRef<HTMLInputElement | null>(null);
 
   const toggleMonitor = useCallback(async () => {
     if (monitoring) {
@@ -190,11 +191,27 @@ export default function Studio() {
                     <Square className="h-4 w-4" /> Stop
                   </Button>
                 )}
+                {!isRecording && (
+                  <Button onClick={() => voiceFileInputRef.current?.click()} size="sm" variant="outline">
+                    <UploadIcon className="h-4 w-4" /> Upload voice
+                  </Button>
+                )}
                 {recorder.state === "stopped" && (
                   <Button onClick={recorder.restart} size="sm" variant="outline">
                     <RotateCcw className="h-4 w-4" /> Reset
                   </Button>
                 )}
+                <input
+                  ref={voiceFileInputRef}
+                  type="file"
+                  accept=".mp3,.wav,.m4a,.webm,.ogg,audio/*"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) recorder.setUploadedAudio(file);
+                    e.target.value = "";
+                  }}
+                />
               </div>
             </div>
 
@@ -202,6 +219,9 @@ export default function Studio() {
               <audio controls src={recorder.audioUrl} className="w-full h-8 opacity-80" />
             )}
             {recorder.error && <p className="text-xs text-red-400">{recorder.error}</p>}
+            <p className="text-xs text-white/30">
+              Record live, or upload a pre-recorded voice clip instead.
+            </p>
 
             <div className="space-y-2 pt-3 border-t border-white/[0.06]">
               <Label className="text-white/60 text-xs uppercase tracking-wider">Voice effects preview</Label>
