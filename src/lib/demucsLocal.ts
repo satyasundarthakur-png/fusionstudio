@@ -15,7 +15,25 @@ const VOCALS_STEM_INDEX = 3;
 // doesn't need to bundle or copy onnxruntime-web's binary assets manually.
 ort.env.wasm.wasmPaths = "https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/";
 
+// Single-threaded WASM avoids the extra SharedArrayBuffer memory the
+// multi-threaded build reserves up front, which otherwise eats into the
+// budget available for the 316MB model itself.
+ort.env.wasm.numThreads = 1;
+ort.env.wasm.simd = true;
+
 let sessionPromise: Promise<ort.InferenceSession> | null = null;
+
+// Disabling the memory arena and memory-pattern optimization stops ONNX
+// Runtime from pre-reserving large, doubling-growth memory blocks at
+// session-creation time. That upfront over-reservation — not the model
+// itself — is what typically throws std::bad_alloc / ERROR_CODE 6 inside a
+// browser's constrained WASM heap, even when the model would otherwise fit.
+const LOW_MEMORY_SESSION_OPTIONS: ort.InferenceSession.SessionOptions = {
+  enableCpuMemArena: false,
+  enableMemPattern: false,
+  executionMode: "sequential",
+  graphOptimizationLevel: "basic",
+};
 
 /**
  * Downloads (or reuses the browser HTTP cache for) the Demucs ONNX model
@@ -58,6 +76,7 @@ export async function loadDemucs(
 
     try {
       return await ort.InferenceSession.create(modelBuffer.buffer, {
+        ...LOW_MEMORY_SESSION_OPTIONS,
         executionProviders: ["webgpu", "wasm"],
       });
     } catch (err) {
@@ -68,10 +87,16 @@ export async function loadDemucs(
         err
       );
       return ort.InferenceSession.create(modelBuffer.buffer, {
+        ...LOW_MEMORY_SESSION_OPTIONS,
         executionProviders: ["wasm"],
       });
     }
-  })();
+  })().catch((err) => {
+    // Don't cache a failed session — otherwise every retry immediately
+    // rejects with the same stale promise instead of trying again.
+    sessionPromise = null;
+    throw err;
+  });
 
   return sessionPromise;
 }
