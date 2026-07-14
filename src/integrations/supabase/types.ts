@@ -14,7 +14,83 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      fusions: {
+        Row: {
+          ai_tips: string[] | null
+          created_at: string | null
+          id: string
+          instrumental_path: string | null
+          instrumental_url: string | null
+          settings: Json | null
+          track_path: string | null
+          track_url: string | null
+          user_id: string | null
+          variants: Json | null
+          voice_path: string | null
+          voice_url: string | null
+        }
+        Insert: {
+          ai_tips?: string[] | null
+          created_at?: string | null
+          id?: string
+          instrumental_path?: string | null
+          instrumental_url?: string | null
+          settings?: Json | null
+          track_path?: string | null
+          track_url?: string | null
+          user_id?: string | null
+          variants?: Json | null
+          voice_path?: string | null
+          voice_url?: string | null
+        }
+        Update: {
+          ai_tips?: string[] | null
+          created_at?: string | null
+          id?: string
+          instrumental_path?: string | null
+          instrumental_url?: string | null
+          settings?: Json | null
+          track_path?: string | null
+          track_url?: string | null
+          user_id?: string | null
+          variants?: Json | null
+          voice_path?: string | null
+          voice_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fusions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string | null
+          display_name: string | null
+          id: string
+          languages: string[] | null
+          total_fusions: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_name?: string | null
+          id: string
+          languages?: string[] | null
+          total_fusions?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          display_name?: string | null
+          id?: string
+          languages?: string[] | null
+          total_fusions?: number | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
