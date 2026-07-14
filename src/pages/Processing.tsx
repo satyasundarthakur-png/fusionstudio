@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import ProcessingPipeline from "@/components/ProcessingPipeline";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
 import { sessionStore } from "@/lib/sessionStore";
@@ -65,31 +64,63 @@ export default function Processing() {
   }, []);
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-16">
-      <div className="text-center mb-8">
-        <h1 className="font-logo text-3xl mb-2">Fusing your Swar…</h1>
-        <p className="text-white/50">
-          Sit tight while we separate, align, and mix your voice into six studio-quality variants.
-          Vocal separation runs locally in your browser and can take a few minutes on the first run
-          while the model downloads — completely free, and nothing leaves your device.
+    <div className="relative min-h-[70vh] flex flex-col items-center justify-center px-4 py-16 overflow-hidden">
+      {/* Ambient glow */}
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{ background: "radial-gradient(ellipse 60% 60% at 50% 50%, rgba(239,159,39,0.06) 0%, transparent 70%)" }}
+      />
+
+      {/* Pulsing rings */}
+      <div className="relative flex items-center justify-center mb-10">
+        <div
+          className="ring-1-anim absolute rounded-full border border-saffron/15"
+          style={{ width: 200, height: 200 }}
+        />
+        <div
+          className="ring-2-anim absolute rounded-full border border-saffron/10"
+          style={{ width: 150, height: 150 }}
+        />
+        <div
+          className="ring-3-anim absolute rounded-full border border-saffron/20"
+          style={{ width: 100, height: 100 }}
+        />
+        {/* Center icon */}
+        <div
+          className="relative z-10 flex h-16 w-16 items-center justify-center rounded-full"
+          style={{ background: "linear-gradient(135deg, rgba(239,159,39,0.2), rgba(212,83,138,0.15))", border: "1px solid rgba(239,159,39,0.3)" }}
+        >
+          <svg viewBox="0 0 24 24" className="h-7 w-7 text-saffron fill-none stroke-current" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 9l10.5-3m0 6.553v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 11-.99-3.467l2.31-.66a2.25 2.25 0 001.632-2.163zm0 0V2.25L9 5.25v10.303m0 0v3.75a2.25 2.25 0 01-1.632 2.163l-1.32.377a1.803 1.803 0 01-.99-3.467l2.31-.66A2.25 2.25 0 009 15.553z" />
+          </svg>
+        </div>
+      </div>
+
+      {/* Text */}
+      <div className="text-center mb-10 max-w-lg">
+        <h1 className="font-logo text-3xl mb-3 gradient-text-saffron w-fit mx-auto">
+          Fusing your Swar…
+        </h1>
+        <p className="text-white/45 text-sm leading-relaxed">
+          Sit tight while we separate, align, and mix your voice into studio-quality variants.
+          Vocal separation runs locally in your browser — nothing leaves your device.
         </p>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Processing pipeline</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <ProcessingPipeline
-            pipeline={mixer.pipeline}
-            separationStatus={mixer.separationStatus}
-            separationProgressPct={mixer.separationProgressPct}
-          />
-          {mixer.error && (
-            <p className="text-sm text-red-400 mt-4">{mixer.error}</p>
-          )}
-        </CardContent>
-      </Card>
+      {/* Pipeline card */}
+      <div className="w-full max-w-md rounded-2xl border border-white/[0.07] bg-white/[0.03] backdrop-blur-sm p-5 shadow-card">
+        <p className="text-xs text-white/40 uppercase tracking-widest mb-4">Processing pipeline</p>
+        <ProcessingPipeline
+          pipeline={mixer.pipeline}
+          separationStatus={mixer.separationStatus}
+          separationProgressPct={mixer.separationProgressPct}
+        />
+        {mixer.error && (
+          <p className="text-xs text-red-400 mt-4 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2">
+            {mixer.error}
+          </p>
+        )}
+      </div>
     </div>
   );
 }

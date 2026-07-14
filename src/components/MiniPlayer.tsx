@@ -13,7 +13,6 @@ function formatTime(sec: number) {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-/** Compact inline audio player with a scrub-able progress bar. */
 export default function MiniPlayer({ src, accent = "saffron" }: MiniPlayerProps) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -23,15 +22,12 @@ export default function MiniPlayer({ src, accent = "saffron" }: MiniPlayerProps)
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
-
     const onTimeUpdate = () => setCurrentTime(audio.currentTime);
     const onLoadedMetadata = () => setDuration(audio.duration);
     const onEnded = () => setIsPlaying(false);
-
     audio.addEventListener("timeupdate", onTimeUpdate);
     audio.addEventListener("loadedmetadata", onLoadedMetadata);
     audio.addEventListener("ended", onEnded);
-
     return () => {
       audio.removeEventListener("timeupdate", onTimeUpdate);
       audio.removeEventListener("loadedmetadata", onLoadedMetadata);
@@ -42,13 +38,8 @@ export default function MiniPlayer({ src, accent = "saffron" }: MiniPlayerProps)
   const togglePlay = () => {
     const audio = audioRef.current;
     if (!audio) return;
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
-    } else {
-      audio.play();
-      setIsPlaying(true);
-    }
+    if (isPlaying) { audio.pause(); setIsPlaying(false); }
+    else { audio.play(); setIsPlaying(true); }
   };
 
   const onScrub = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,27 +54,50 @@ export default function MiniPlayer({ src, accent = "saffron" }: MiniPlayerProps)
   const progressPct = duration ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="flex items-center gap-3 rounded-xl bg-black/30 px-3 py-2">
+    <div
+      className="flex items-center gap-3 rounded-xl px-3 py-2.5"
+      style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}
+    >
       <audio ref={audioRef} src={src} preload="metadata" />
+
+      {/* Play button */}
       <button
         onClick={togglePlay}
-        style={{ backgroundColor: accentColor }}
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-midnight"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all hover:scale-110 active:scale-95"
+        style={{
+          background: `linear-gradient(135deg, ${accentColor}cc, ${accentColor}99)`,
+          boxShadow: `0 0 12px ${accentColor}40`,
+        }}
         aria-label={isPlaying ? "Pause" : "Play"}
       >
-        {isPlaying ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4 ml-0.5" />}
+        {isPlaying
+          ? <Pause className="h-3.5 w-3.5 text-midnight" />
+          : <Play className="h-3.5 w-3.5 ml-0.5 text-midnight" />
+        }
       </button>
-      <input
-        type="range"
-        min={0}
-        max={100}
-        value={progressPct}
-        onChange={onScrub}
-        style={{ accentColor }}
-        className="flex-1 h-1.5 cursor-pointer"
-      />
-      <span className="text-xs tabular-nums text-white/60 w-20 text-right">
-        {formatTime(currentTime)} / {formatTime(duration)}
+
+      {/* Scrubber */}
+      <div className="flex-1 relative">
+        {/* Track background */}
+        <div className="w-full h-1 rounded-full bg-white/10 relative overflow-hidden">
+          <div
+            className="absolute left-0 top-0 h-full rounded-full transition-all"
+            style={{ width: `${progressPct}%`, background: accentColor }}
+          />
+        </div>
+        <input
+          type="range"
+          min={0}
+          max={100}
+          value={progressPct}
+          onChange={onScrub}
+          style={{ accentColor, position: "absolute", inset: 0, opacity: 0, cursor: "pointer", width: "100%" }}
+        />
+      </div>
+
+      {/* Time */}
+      <span className="text-[10px] font-mono tabular-nums text-white/45 shrink-0">
+        {formatTime(currentTime)}<span className="text-white/25"> / </span>{formatTime(duration)}
       </span>
     </div>
   );

@@ -10,19 +10,189 @@ html, body, #root {
 
 body {
   background-color: #0a0a14;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 15% -5%, rgba(239, 159, 39, 0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 40% at 85% 105%, rgba(212, 83, 138, 0.055) 0%, transparent 65%);
+  background-attachment: fixed;
 }
 
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* ── Gradient text ─────────────────────────────── */
+.gradient-text-saffron {
+  background: linear-gradient(130deg, #f5c842 0%, #ef9f27 55%, #fbbf24 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: shimmer-text 4s linear infinite;
 }
-::-webkit-scrollbar-track {
-  background: #0a0a14;
+
+@keyframes shimmer-text {
+  0%   { background-position: 0% center; }
+  100% { background-position: 200% center; }
 }
+
+/* ── Tanpura / hero ambient ────────────────────── */
+@keyframes string-pulse {
+  0%, 100% { opacity: 0.25; filter: blur(1px); }
+  50%       { opacity: 0.55; filter: blur(0px); }
+}
+
+.tanpura-string {
+  animation: string-pulse 5s ease-in-out infinite;
+}
+
+@keyframes orb-float {
+  0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
+  50%       { transform: translateY(-20px) scale(1.06); opacity: 1; }
+}
+
+.glow-orb-a {
+  animation: orb-float 8s ease-in-out infinite;
+}
+
+.glow-orb-b {
+  animation: orb-float 10s ease-in-out infinite 2s;
+}
+
+/* ── Card hover lift ───────────────────────────── */
+.card-hover {
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 159, 39, 0.07);
+  border-color: rgba(239, 159, 39, 0.22) !important;
+}
+
+/* ── Processing pulse rings ────────────────────── */
+@keyframes pulse-ring {
+  0%   { transform: scale(0.88); opacity: 0.7; }
+  50%  { transform: scale(1.12); opacity: 0.2; }
+  100% { transform: scale(0.88); opacity: 0.7; }
+}
+
+.ring-1-anim { animation: pulse-ring 2.2s ease-in-out infinite; }
+.ring-2-anim { animation: pulse-ring 2.2s ease-in-out infinite 0.45s; }
+.ring-3-anim { animation: pulse-ring 2.2s ease-in-out infinite 0.9s; }
+
+/* ── Recording state ───────────────────────────── */
+@keyframes rec-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.5); }
+  50%       { box-shadow: 0 0 0 10px rgba(220, 38, 38, 0); }
+}
+
+.rec-indicator {
+  animation: rec-pulse 1.4s ease-in-out infinite;
+}
+
+/* ── Nav animated underline ────────────────────── */
+.nav-link {
+  position: relative;
+  color: rgba(255, 255, 255, 0.65);
+  transition: color 0.2s;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #ef9f27, #f5c842);
+  transition: width 0.25s ease;
+}
+
+.nav-link:hover {
+  color: #fff;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* ── Step badge (Studio) ───────────────────────── */
+.step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  background: rgba(239, 159, 39, 0.12);
+  border: 1px solid rgba(239, 159, 39, 0.35);
+  color: #ef9f27;
+  font-size: 0.7rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* ── Drop zone ─────────────────────────────────── */
+.drop-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+}
+
+.drop-zone:hover {
+  border-color: rgba(239, 159, 39, 0.35);
+  background: rgba(239, 159, 39, 0.03);
+}
+
+.drop-zone-active {
+  border-color: #ef9f27 !important;
+  background: rgba(239, 159, 39, 0.06) !important;
+  box-shadow: 0 0 0 1px rgba(239, 159, 39, 0.25), inset 0 0 24px rgba(239, 159, 39, 0.04);
+}
+
+/* ── Custom scrollbar ──────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: #3a2f1f;
+  background: rgba(239, 159, 39, 0.25);
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
+  background: rgba(239, 159, 39, 0.5);
+}
+
+/* ── Range input ───────────────────────────────── */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+  height: 20px;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: rgba(255, 255, 255, 0.1);
+  height: 4px;
+  border-radius: 9999px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
   background: #ef9f27;
+  margin-top: -6px;
+  box-shadow: 0 0 10px rgba(239, 159, 39, 0.55);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+input[type="range"]:hover::-webkit-slider-thumb {
+  transform: scale(1.2);
+  box-shadow: 0 0 16px rgba(239, 159, 39, 0.75);
+}
+
+/* ── Reduce motion ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

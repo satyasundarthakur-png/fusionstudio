@@ -7,6 +7,7 @@ import {
   Upload as UploadIcon,
   FileAudio,
   Sparkles,
+  Music2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -36,6 +37,15 @@ function formatTimer(sec: number) {
 
 function formatBytes(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function StepTitle({ step, children }: { step: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5">
+      <span className="step-badge">{step}</span>
+      <span className="text-base font-semibold text-white/90 tracking-tight">{children}</span>
+    </div>
+  );
 }
 
 export default function Studio() {
@@ -151,34 +161,48 @@ export default function Studio() {
     }
   };
 
+  const isRecording = recorder.state === "recording";
+
   return (
-    <div className="max-w-5xl mx-auto px-4 py-10 space-y-8">
-      <div>
-        <h1 className="font-logo text-3xl mb-1">Voice Studio</h1>
-        <p className="text-white/50">
-          Record over "Kesariya," a Rabindra Sangeet piece, or any track you upload below.
+    <div className="max-w-5xl mx-auto px-4 py-10 space-y-6">
+      {/* Page header */}
+      <div className="mb-2">
+        <h1 className="font-logo text-3xl mb-1.5 gradient-text-saffron w-fit">Voice Studio</h1>
+        <p className="text-white/45 text-sm">
+          Record over any track you upload — AI will separate the instrumental and mix your voice into studio-quality fusions.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <Card>
+      {/* Step 1 + 2 row */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        {/* Record */}
+        <Card className={isRecording ? "border-red-500/30 shadow-[0_0_24px_rgba(220,38,38,0.1)]" : ""}>
           <CardHeader>
-            <CardTitle>1. Record your voice</CardTitle>
+            <StepTitle step="1">Record your voice</StepTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Waveform analyser={recorder.analyser} isActive={recorder.state === "recording"} />
+            <div className="rounded-xl overflow-hidden border border-white/[0.06] bg-black/30">
+              <Waveform analyser={recorder.analyser} isActive={isRecording} />
+            </div>
 
             <div className="flex items-center justify-between">
-              <span className="text-2xl font-semibold tabular-nums">
+              <span
+                className={`text-2xl font-mono tabular-nums ${isRecording ? "text-red-400" : "text-white/80"}`}
+              >
                 {formatTimer(recorder.elapsedSec)}
               </span>
               <div className="flex gap-2">
-                {recorder.state !== "recording" ? (
-                  <Button onClick={recorder.start} size="sm">
-                    <Mic className="h-4 w-4" /> {recorder.state === "stopped" ? "Re-record" : "Record"}
+                {!isRecording ? (
+                  <Button
+                    onClick={recorder.start}
+                    size="sm"
+                    className={recorder.state === "stopped" ? "" : ""}
+                  >
+                    <Mic className={`h-4 w-4 ${isRecording ? "rec-indicator" : ""}`} />
+                    {recorder.state === "stopped" ? "Re-record" : "Record"}
                   </Button>
                 ) : (
-                  <Button onClick={recorder.stop} size="sm" variant="destructive">
+                  <Button onClick={recorder.stop} size="sm" variant="destructive" className="rec-indicator">
                     <Square className="h-4 w-4" /> Stop
                   </Button>
                 )}
@@ -191,41 +215,40 @@ export default function Studio() {
             </div>
 
             {recorder.audioUrl && (
-              <audio controls src={recorder.audioUrl} className="w-full" />
+              <audio controls src={recorder.audioUrl} className="w-full h-8 opacity-80" />
             )}
-            {recorder.error && <p className="text-sm text-red-400">{recorder.error}</p>}
+            {recorder.error && <p className="text-xs text-red-400">{recorder.error}</p>}
 
-            <div className="space-y-2 pt-2 border-t border-white/10">
-              <Label>Voice effects preview</Label>
+            <div className="space-y-2 pt-3 border-t border-white/[0.06]">
+              <Label className="text-white/60 text-xs uppercase tracking-wider">Voice effects preview</Label>
               <EffectChips value={effectPreset} onChange={setEffectPreset} />
-              <Button variant="ghost" size="sm" onClick={toggleMonitor}>
+              <Button variant="ghost" size="sm" onClick={toggleMonitor} className="text-xs mt-1">
                 {monitoring ? "Stop live preview" : "Preview effect on mic"}
               </Button>
             </div>
           </CardContent>
         </Card>
 
+        {/* Upload */}
         <Card>
           <CardHeader>
-            <CardTitle>2. Upload a track</CardTitle>
+            <StepTitle step="2">Upload a track</StepTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div
-              onDragOver={(e) => {
-                e.preventDefault();
-                setDragActive(true);
-              }}
+              onDragOver={(e) => { e.preventDefault(); setDragActive(true); }}
               onDragLeave={() => setDragActive(false)}
               onDrop={onDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed p-8 text-center cursor-pointer transition-colors ${
-                dragActive ? "border-saffron bg-saffron/5" : "border-white/15 hover:border-white/30"
-              }`}
+              className={`flex flex-col items-center justify-center gap-3 rounded-xl p-10 text-center cursor-pointer drop-zone ${dragActive ? "drop-zone-active" : ""}`}
             >
-              <UploadIcon className="h-8 w-8 text-white/40" />
-              <p className="text-sm text-white/60">
-                Drag & drop your MP3, WAV, or FLAC — up to 100MB
-              </p>
+              <div className="h-12 w-12 rounded-full flex items-center justify-center border border-white/10 bg-white/5">
+                <UploadIcon className="h-5 w-5 text-white/40" />
+              </div>
+              <div>
+                <p className="text-sm text-white/65 font-medium">Drop your track here</p>
+                <p className="text-xs text-white/35 mt-0.5">MP3, WAV, FLAC — up to 100 MB</p>
+              </div>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -239,10 +262,12 @@ export default function Studio() {
             </div>
 
             {trackMeta && (
-              <div className="flex items-center gap-3 rounded-lg bg-white/5 p-3">
-                <FileAudio className="h-5 w-5 text-saffron shrink-0" />
+              <div className="flex items-center gap-3 rounded-xl border border-saffron/20 bg-saffron/5 px-4 py-3">
+                <div className="h-9 w-9 rounded-lg flex items-center justify-center bg-saffron/15">
+                  <FileAudio className="h-4 w-4 text-saffron" />
+                </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{trackMeta.name}</p>
+                  <p className="text-sm font-medium truncate text-white/90">{trackMeta.name}</p>
                   <p className="text-xs text-white/40">{trackMeta.sizeMB}</p>
                 </div>
               </div>
@@ -251,14 +276,21 @@ export default function Studio() {
         </Card>
       </div>
 
+      {/* Step 3 — Fusion settings */}
       <Card>
         <CardHeader>
-          <CardTitle>3. Fusion settings</CardTitle>
+          <StepTitle step="3">Fusion settings</StepTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-7">
+          {/* Volume sliders */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <Label>Voice volume — {voiceVolumePct}%</Label>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Label className="text-white/65 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <Mic className="h-3 w-3" /> Voice volume
+                </Label>
+                <span className="text-saffron text-sm font-mono font-semibold">{voiceVolumePct}%</span>
+              </div>
               <Slider
                 value={[voiceVolumePct]}
                 onValueChange={([v]) => setVoiceVolumePct(v)}
@@ -266,8 +298,13 @@ export default function Studio() {
                 step={1}
               />
             </div>
-            <div className="space-y-2">
-              <Label>Music volume — {musicVolumePct}%</Label>
+            <div className="space-y-3">
+              <div className="flex justify-between items-center">
+                <Label className="text-white/65 text-xs uppercase tracking-wider flex items-center gap-1.5">
+                  <Music2 className="h-3 w-3" /> Music volume
+                </Label>
+                <span className="text-saffron text-sm font-mono font-semibold">{musicVolumePct}%</span>
+              </div>
               <Slider
                 value={[musicVolumePct]}
                 onValueChange={([v]) => setMusicVolumePct(v)}
@@ -277,23 +314,27 @@ export default function Studio() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+          {/* Divider */}
+          <div className="border-t border-white/[0.05]" />
+
+          {/* Selects */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <div className="space-y-2">
-              <Label>Vocal separation model</Label>
+              <Label className="text-white/55 text-xs uppercase tracking-wider">Separation model</Label>
               <Select value={separationModel} onValueChange={(v) => setSeparationModel(v as typeof separationModel)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="demucs">Demucs — in-browser, free (recommended)</SelectItem>
-                  <SelectItem value="spleeter">Spleeter 2-stem — in-browser, free</SelectItem>
+                  <SelectItem value="demucs">Demucs — in-browser (recommended)</SelectItem>
+                  <SelectItem value="spleeter">Spleeter 2-stem — in-browser</SelectItem>
                   <SelectItem value="skip">Skip separation</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-2">
-              <Label>Output quality</Label>
+              <Label className="text-white/55 text-xs uppercase tracking-wider">Output quality</Label>
               <Select value={quality} onValueChange={(v) => setQuality(v as typeof quality)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -307,7 +348,7 @@ export default function Studio() {
             </div>
 
             <div className="space-y-2">
-              <Label>Fusion variants</Label>
+              <Label className="text-white/55 text-xs uppercase tracking-wider">Fusion variants</Label>
               <Select value={variantMode} onValueChange={(v) => setVariantMode(v as typeof variantMode)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -327,10 +368,10 @@ export default function Studio() {
                 <button
                   key={v}
                   onClick={() => toggleCustomVariant(v)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-medium border transition-colors ${
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all capitalize ${
                     customVariants.includes(v)
-                      ? "bg-saffron text-midnight border-saffron"
-                      : "bg-white/5 text-white/70 border-white/15"
+                      ? "bg-saffron text-midnight border-saffron shadow-glow-saffron/40"
+                      : "bg-white/[0.04] text-white/60 border-white/10 hover:border-white/25 hover:text-white/80"
                   }`}
                 >
                   {v}
@@ -340,16 +381,20 @@ export default function Studio() {
           )}
 
           <div className="space-y-2">
-            <Label>Song languages / styles</Label>
+            <Label className="text-white/55 text-xs uppercase tracking-wider">Song languages / styles</Label>
             <LanguageTags selected={languages} onToggle={toggleLanguage} />
           </div>
         </CardContent>
       </Card>
 
-      {submitError && <p className="text-sm text-red-400">{submitError}</p>}
+      {submitError && (
+        <div className="rounded-xl border border-red-500/20 bg-red-500/8 px-4 py-3 text-sm text-red-400">
+          {submitError}
+        </div>
+      )}
 
-      <div className="flex justify-end">
-        <Button size="lg" disabled={!canProceed || submitting} onClick={handleProceed}>
+      <div className="flex justify-end pt-2">
+        <Button size="lg" disabled={!canProceed || submitting} onClick={handleProceed} className="gap-2 px-8">
           <Sparkles className="h-4 w-4" />
           {submitting ? "Preparing…" : "Create Fusion"}
         </Button>

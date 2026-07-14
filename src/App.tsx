@@ -29,26 +29,33 @@ function NavBar() {
   }, []);
 
   return (
-    <header className="border-b border-white/10 bg-midnight/95 backdrop-blur sticky top-0 z-40">
-      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 py-3">
-        <Link to="/" className="font-logo text-2xl text-saffron tracking-wide">
+    <header
+      className="sticky top-0 z-40 border-b border-white/[0.06]"
+      style={{ background: "rgba(10, 10, 20, 0.88)", backdropFilter: "blur(20px)" }}
+    >
+      <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-14">
+        {/* Logo */}
+        <Link to="/" className="font-logo text-xl tracking-wide gradient-text-saffron select-none">
           SwarFusion
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          <Link to="/studio" className="hover:text-saffron transition-colors">
+
+        {/* Nav */}
+        <nav className="flex items-center gap-6 text-sm">
+          <Link to="/studio" className="nav-link">
             Studio
           </Link>
-          <Link to="/library" className="hover:text-saffron transition-colors">
-            My Fusions
+          <Link to="/library" className="nav-link">
+            Library
           </Link>
           {email ? (
-            <Link to="/profile" className="hover:text-saffron transition-colors">
+            <Link to="/profile" className="nav-link">
               Profile
             </Link>
           ) : (
             <Link
               to="/login"
-              className="rounded-full bg-saffron text-midnight px-4 py-1.5 font-medium hover:bg-amber-400 transition-colors"
+              className="rounded-full px-4 py-1.5 text-midnight font-semibold text-sm transition-all hover:brightness-110 hover:shadow-glow-saffron"
+              style={{ background: "linear-gradient(135deg, #ef9f27, #f5c842)" }}
             >
               Sign in
             </Link>
@@ -66,8 +73,9 @@ function RootLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
-      <footer className="border-t border-white/10 py-6 text-center text-xs text-white/40">
-        SwarFusion — Swar milaake, sur banaaye. Made for Indian voices.
+      <footer className="border-t border-white/[0.06] py-6 text-center text-xs text-white/30">
+        <span className="gradient-text-saffron font-logo mr-1">SwarFusion</span>
+        — Swar milaake, sur banaaye. Made for Indian voices.
       </footer>
     </div>
   );
