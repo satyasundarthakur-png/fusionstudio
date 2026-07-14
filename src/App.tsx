@@ -14,7 +14,10 @@ import Studio from "@/pages/Studio";
 import Processing from "@/pages/Processing";
 import Results from "@/pages/Results";
 
-const NAV_LINKS = [{ to: "/studio", label: "Studio" }];
+const NAV_LINKS = [
+  { to: "/", label: "Home" },
+  { to: "/studio", label: "Studio" },
+];
 
 function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
