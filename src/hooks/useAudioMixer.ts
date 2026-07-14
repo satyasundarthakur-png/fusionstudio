@@ -40,6 +40,7 @@ export function useAudioMixer() {
   const [separationProgressPct, setSeparationProgressPct] = useState<number | null>(
     null
   );
+  const [separationWarning, setSeparationWarning] = useState<string | null>(null);
 
   const setStep = useCallback(
     (step: PipelineStepId, status: PipelineStepStatus) => {
@@ -82,25 +83,43 @@ export function useAudioMixer() {
         // cost; the model weights are cached by the browser after the
         // first run.
         setStep("separate", "active");
+        setSeparationWarning(null);
         let noVocalsUrl = trackUrl;
         let vocalsUrl: string | null = null;
         if (!skipSeparation) {
-          setSeparationStatus("Loading track for separation…");
-          const ctx = new (window.AudioContext ||
-            (window as any).webkitAudioContext)();
-          const trackBuffer = await fetch(trackUrl)
-            .then((r) => r.arrayBuffer())
-            .then((ab) => ctx.decodeAudioData(ab));
+          try {
+            setSeparationStatus("Loading track for separation…");
+            const ctx = new (window.AudioContext ||
+              (window as any).webkitAudioContext)();
+            const trackBuffer = await fetch(trackUrl)
+              .then((r) => r.arrayBuffer())
+              .then((ab) => ctx.decodeAudioData(ab));
 
-          const sep = await separateVocalsLocal(trackBuffer, (status, pct) => {
-            setSeparationStatus(status);
-            setSeparationProgressPct(pct ?? null);
-          });
-          await ctx.close();
+            const sep = await separateVocalsLocal(trackBuffer, (status, pct) => {
+              setSeparationStatus(status);
+              setSeparationProgressPct(pct ?? null);
+            });
+            await ctx.close();
 
-          noVocalsUrl = sep.noVocalsUrl;
-          vocalsUrl = sep.vocalsUrl;
-          setInstrumentalBlob(sep.noVocalsBlob);
+            noVocalsUrl = sep.noVocalsUrl;
+            vocalsUrl = sep.vocalsUrl;
+            setInstrumentalBlob(sep.noVocalsBlob);
+          } catch (sepErr) {
+            // Local Demucs can fail on devices without enough memory for the
+            // model (std::bad_alloc / ERROR_CODE 6). Rather than failing the
+            // whole fusion, fall back to mixing over the original track
+            // un-separated — same as the "Skip separation" option.
+            console.warn(
+              "Local vocal separation failed, continuing without it.",
+              sepErr
+            );
+            setSeparationWarning(
+              "Instrumental separation couldn't run on this device (likely low memory), so this fusion mixes your voice directly over the original track instead of an isolated instrumental."
+            );
+            noVocalsUrl = trackUrl;
+            vocalsUrl = null;
+            setInstrumentalBlob(null);
+          }
         } else {
           // Separation skipped — the "instrumental" is just the original
           // track, which is already uploaded to Storage; no extra blob to
@@ -184,6 +203,7 @@ export function useAudioMixer() {
     error,
     separationStatus,
     separationProgressPct,
+    separationWarning,
     run,
   };
 }

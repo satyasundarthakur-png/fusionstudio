@@ -26,6 +26,9 @@ export type StudioSessionResult = {
   instrumentalBlob: Blob | null;
   variants: MixResult[];
   aiTips: string[];
+  /** Set when local Demucs separation failed (e.g. low-memory device) and
+   * the fusion fell back to mixing over the un-separated track. */
+  separationWarning: string | null;
 };
 
 const initialInput: StudioSessionInput = {
@@ -51,6 +54,7 @@ const initialResult: StudioSessionResult = {
   instrumentalBlob: null,
   variants: [],
   aiTips: [],
+  separationWarning: null,
 };
 
 /**

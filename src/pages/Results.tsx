@@ -67,6 +67,12 @@ export default function Results() {
         </div>
       </div>
 
+      {result.separationWarning && (
+        <div className="rounded-xl border border-amber-500/20 bg-amber-500/8 px-4 py-3 text-sm text-amber-400">
+          {result.separationWarning}
+        </div>
+      )}
+
       {/* Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {result.variants.map((mix) => (

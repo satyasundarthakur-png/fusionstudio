@@ -56,6 +56,7 @@ export default function Processing() {
         instrumentalBlob: mixer.instrumentalBlob,
         variants: results,
         aiTips: tips,
+        separationWarning: mixer.separationWarning,
       });
 
       navigate({ to: "/results" });
@@ -115,6 +116,11 @@ export default function Processing() {
           separationStatus={mixer.separationStatus}
           separationProgressPct={mixer.separationProgressPct}
         />
+        {mixer.separationWarning && (
+          <p className="text-xs text-amber-400 mt-4 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-2">
+            {mixer.separationWarning}
+          </p>
+        )}
         {mixer.error && (
           <p className="text-xs text-red-400 mt-4 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2">
             {mixer.error}
