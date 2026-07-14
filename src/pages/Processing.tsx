@@ -116,6 +116,29 @@ export default function Processing() {
           separationStatus={mixer.separationStatus}
           separationProgressPct={mixer.separationProgressPct}
         />
+        {mixer.timeoutOffer && (
+          <div className="mt-4 rounded-lg bg-saffron/10 border border-saffron/25 px-3 py-3 space-y-2.5">
+            <p className="text-xs text-white/70">
+              Still separating{mixer.timeoutOffer.progressPct >= 1 ? ` (${Math.round(mixer.timeoutOffer.progressPct)}%)` : ""} —
+              this is taking longer than usual. Want to give it 5 more minutes rather than stopping now?
+            </p>
+            <div className="flex gap-2">
+              <button
+                onClick={() => mixer.respondToTimeoutOffer(true)}
+                className="rounded-full px-3.5 py-1.5 text-xs font-semibold text-midnight"
+                style={{ background: "linear-gradient(135deg, #ef9f27, #f5c842)" }}
+              >
+                Add 5 more minutes
+              </button>
+              <button
+                onClick={() => mixer.respondToTimeoutOffer(false)}
+                className="rounded-full px-3.5 py-1.5 text-xs font-semibold border border-white/15 text-white/65 hover:text-white/90 hover:border-white/25"
+              >
+                Stop and continue without it
+              </button>
+            </div>
+          </div>
+        )}
         {mixer.separationWarning && (
           <p className="text-xs text-amber-400 mt-4 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-2">
             {mixer.separationWarning}

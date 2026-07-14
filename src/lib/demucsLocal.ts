@@ -42,6 +42,16 @@ const LOW_MEMORY_SESSION_OPTIONS: ort.InferenceSession.SessionOptions = {
 
 let processorPromise: Promise<DemucsProcessor> | null = null;
 
+// The DemucsProcessor instance is cached/reused across separation runs, but
+// its onProgress/onDownloadProgress callbacks are bound once at
+// construction. Routing through a mutable relay lets each call to
+// separateVocalsLocal point progress updates at *its own* callback/local
+// state, instead of only the very first call's.
+const progressRelay: {
+  onDownloadProgress: ((loaded: number, total: number) => void) | null;
+  onProgress: ((progress: number) => void) | null;
+} = { onDownloadProgress: null, onProgress: null };
+
 /**
  * Creates (and caches) a DemucsProcessor with the lighter ~172MB model,
  * downloading it on first use. The demucs-web package handles chunking,
@@ -51,24 +61,27 @@ let processorPromise: Promise<DemucsProcessor> | null = null;
 function loadDemucs(
   onProgress?: (status: string, pct?: number) => void
 ): Promise<DemucsProcessor> {
+  progressRelay.onDownloadProgress = (loaded, total) => {
+    onProgress?.(
+      "Downloading Demucs model (first run only, cached after)…",
+      total ? (loaded / total) * 100 : 0
+    );
+  };
+  progressRelay.onProgress = (progress) => {
+    onProgress?.(
+      "Running AI separation in your browser (this can take a few minutes)…",
+      progress * 100
+    );
+  };
+
   if (processorPromise) return processorPromise;
 
   processorPromise = (async () => {
     const processor = new DemucsProcessor({
       ort,
       sessionOptions: LOW_MEMORY_SESSION_OPTIONS,
-      onDownloadProgress: (loaded, total) => {
-        onProgress?.(
-          "Downloading Demucs model (first run only, cached after)…",
-          total ? (loaded / total) * 100 : 0
-        );
-      },
-      onProgress: ({ progress }) => {
-        onProgress?.(
-          "Running AI separation in your browser (this can take a few minutes)…",
-          progress * 100
-        );
-      },
+      onDownloadProgress: (loaded, total) => progressRelay.onDownloadProgress?.(loaded, total),
+      onProgress: ({ progress }) => progressRelay.onProgress?.(progress),
     });
 
     await processor.loadModel(MODEL_URL);
@@ -90,6 +103,52 @@ export type LocalSeparationResult = {
   vocalsBlob: Blob;
 };
 
+export type TimeoutExtensionOffer = {
+  /** Best-known progress (0-100) at the moment the timeout was hit. */
+  progressPct: number;
+};
+
+/**
+ * Races a promise against a timeout, but instead of failing outright when
+ * the timeout fires, optionally asks the caller (via onTimeoutOffer) whether
+ * to grant more time. The underlying work keeps running in the background
+ * either way — Promise.race doesn't cancel the loser — so if the person
+ * says "yes, keep going", nothing is lost or restarted, we just keep
+ * waiting on the same in-progress work with a fresh timer.
+ */
+async function raceWithExtendableTimeout<T>(
+  work: Promise<T>,
+  initialMs: number,
+  extensionMs: number,
+  getProgressPct: () => number,
+  onTimeoutOffer?: (offer: TimeoutExtensionOffer) => Promise<boolean>
+): Promise<T> {
+  let ms = initialMs;
+  // eslint-disable-next-line no-constant-condition
+  while (true) {
+    const TIMED_OUT = Symbol("timed-out");
+    const result = await Promise.race([
+      work,
+      new Promise<typeof TIMED_OUT>((resolve) => setTimeout(() => resolve(TIMED_OUT), ms)),
+    ]);
+
+    if (result !== TIMED_OUT) return result;
+
+    if (!onTimeoutOffer) {
+      throw new Error(
+        "Local vocal separation timed out (device likely too slow for in-browser separation)."
+      );
+    }
+
+    const shouldExtend = await onTimeoutOffer({ progressPct: getProgressPct() });
+    if (!shouldExtend) {
+      throw new Error("Local vocal separation timed out (user declined to wait longer).");
+    }
+
+    ms = extensionMs; // wait another round, same in-progress work
+  }
+}
+
 /**
  * Runs Demucs entirely in the browser (WASM via onnxruntime-web) on the
  * given track buffer, returning separated instrumental ("no vocals") and
@@ -97,36 +156,41 @@ export type LocalSeparationResult = {
  */
 export async function separateVocalsLocal(
   audioBuffer: AudioBuffer,
-  onProgress?: (status: string, pct?: number) => void
+  onProgress?: (status: string, pct?: number) => void,
+  onTimeoutOffer?: (offer: TimeoutExtensionOffer) => Promise<boolean>
 ): Promise<LocalSeparationResult> {
-  onProgress?.("Downloading Demucs model (first run only, cached after)…", 0);
-  const processor = await loadDemucs(onProgress);
+  let latestProgressPct = 0;
+  const trackingOnProgress: typeof onProgress = (status, pct) => {
+    if (typeof pct === "number") latestProgressPct = pct;
+    onProgress?.(status, pct);
+  };
 
-  onProgress?.("Preparing audio for separation…");
+  trackingOnProgress?.("Downloading Demucs model (first run only, cached after)…", 0);
+  const processor = await loadDemucs(trackingOnProgress);
+
+  trackingOnProgress?.("Preparing audio for separation…");
 
   const left = audioBuffer.getChannelData(0);
   const right =
     audioBuffer.numberOfChannels > 1 ? audioBuffer.getChannelData(1) : left;
 
-  onProgress?.("Running AI separation in your browser (this can take a few minutes)…");
+  trackingOnProgress?.("Running AI separation in your browser (this can take a few minutes)…");
 
   // Safety net: if a device is slow enough that separation would take an
-  // unreasonable amount of time (e.g. no WebGPU + weak CPU), fail out after
-  // a generous ceiling instead of leaving the person staring at a screen
-  // that looks hung. The caller (useAudioMixer) already falls back
-  // gracefully to an un-separated mix on any error from this function.
+  // unreasonable amount of time (e.g. no WebGPU + weak CPU), offer the
+  // person a chance to grant 5 more minutes instead of failing outright —
+  // this matters most right near the end (e.g. stuck at 99%), where failing
+  // and falling back would throw away nearly-finished work.
   const SEPARATION_TIMEOUT_MS = 15 * 60 * 1000; // 15 minutes
-  const timeout = new Promise<never>((_, reject) => {
-    setTimeout(
-      () => reject(new Error("Local vocal separation timed out (device likely too slow for in-browser separation).")),
-      SEPARATION_TIMEOUT_MS
-    );
-  });
+  const EXTENSION_MS = 5 * 60 * 1000; // +5 minutes per extension
 
-  const { drums, bass, other, vocals } = await Promise.race([
+  const { drums, bass, other, vocals } = await raceWithExtendableTimeout(
     processor.separate(left, right),
-    timeout,
-  ]);
+    SEPARATION_TIMEOUT_MS,
+    EXTENSION_MS,
+    () => latestProgressPct,
+    onTimeoutOffer
+  );
 
   onProgress?.("Building instrumental and vocal stems…");
 

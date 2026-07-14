@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   generateFusionVariants,
   detectPitchAutocorrelation,
@@ -6,7 +6,7 @@ import {
   type FusionVariantKey,
   type MixResult,
 } from "@/lib/audioEngine";
-import { separateVocalsLocal } from "@/lib/demucsLocal";
+import { separateVocalsLocal, type TimeoutExtensionOffer } from "@/lib/demucsLocal";
 
 export type PipelineStepId =
   | "upload"
@@ -41,6 +41,15 @@ export function useAudioMixer() {
     null
   );
   const [separationWarning, setSeparationWarning] = useState<string | null>(null);
+  const [timeoutOffer, setTimeoutOffer] = useState<TimeoutExtensionOffer | null>(null);
+  const timeoutDecisionRef = useRef<((extend: boolean) => void) | null>(null);
+
+  /** Called by the Processing UI when the person clicks "Add 5 more minutes" or "Stop". */
+  const respondToTimeoutOffer = useCallback((extend: boolean) => {
+    setTimeoutOffer(null);
+    timeoutDecisionRef.current?.(extend);
+    timeoutDecisionRef.current = null;
+  }, []);
 
   const setStep = useCallback(
     (step: PipelineStepId, status: PipelineStepStatus) => {
@@ -95,10 +104,18 @@ export function useAudioMixer() {
               .then((r) => r.arrayBuffer())
               .then((ab) => ctx.decodeAudioData(ab));
 
-            const sep = await separateVocalsLocal(trackBuffer, (status, pct) => {
-              setSeparationStatus(status);
-              setSeparationProgressPct(pct ?? null);
-            });
+            const sep = await separateVocalsLocal(
+              trackBuffer,
+              (status, pct) => {
+                setSeparationStatus(status);
+                setSeparationProgressPct(pct ?? null);
+              },
+              (offer) =>
+                new Promise<boolean>((resolve) => {
+                  timeoutDecisionRef.current = resolve;
+                  setTimeoutOffer(offer);
+                })
+            );
             await ctx.close();
 
             noVocalsUrl = sep.noVocalsUrl;
@@ -204,6 +221,8 @@ export function useAudioMixer() {
     separationStatus,
     separationProgressPct,
     separationWarning,
+    timeoutOffer,
+    respondToTimeoutOffer,
     run,
   };
 }
