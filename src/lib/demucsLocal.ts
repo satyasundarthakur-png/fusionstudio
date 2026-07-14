@@ -27,10 +27,16 @@ ort.env.wasm.simd = true;
 // Runtime from pre-reserving large, doubling-growth memory blocks at
 // session-creation time — the usual cause of std::bad_alloc in a browser's
 // constrained WASM heap, even when the model would otherwise fit.
+//
+// executionProviders tries WebGPU first, falling back to WASM: forcing
+// WASM-only avoids some memory overhead but makes each of the ~30-40 chunk
+// inferences for a full track run on pure single-threaded CPU, which is
+// dramatically slower (minutes-to-tens-of-minutes) and can look like the
+// separation step has hung even though it's just crawling through compute.
 const LOW_MEMORY_SESSION_OPTIONS: ort.InferenceSession.SessionOptions = {
   enableCpuMemArena: false,
   enableMemPattern: false,
-  executionProviders: ["wasm"],
+  executionProviders: ["webgpu", "wasm"],
   graphOptimizationLevel: "basic",
 };
 
@@ -104,7 +110,23 @@ export async function separateVocalsLocal(
 
   onProgress?.("Running AI separation in your browser (this can take a few minutes)…");
 
-  const { drums, bass, other, vocals } = await processor.separate(left, right);
+  // Safety net: if a device is slow enough that separation would take an
+  // unreasonable amount of time (e.g. no WebGPU + weak CPU), fail out after
+  // a generous ceiling instead of leaving the person staring at a screen
+  // that looks hung. The caller (useAudioMixer) already falls back
+  // gracefully to an un-separated mix on any error from this function.
+  const SEPARATION_TIMEOUT_MS = 6 * 60 * 1000; // 6 minutes
+  const timeout = new Promise<never>((_, reject) => {
+    setTimeout(
+      () => reject(new Error("Local vocal separation timed out (device likely too slow for in-browser separation).")),
+      SEPARATION_TIMEOUT_MS
+    );
+  });
+
+  const { drums, bass, other, vocals } = await Promise.race([
+    processor.separate(left, right),
+    timeout,
+  ]);
 
   onProgress?.("Building instrumental and vocal stems…");
 
