@@ -243,7 +243,8 @@ async function renderVariant(
     }
 
     if (variant === "lofi") {
-      const crusher = new Tone.BitCrusher({ bits: 6, wet: 0.35 });
+      const crusher = new Tone.BitCrusher({ bits: 6 });
+      crusher.wet.value = 0.35;
       const filter = new Tone.Filter({ frequency: 3400, type: "lowpass" });
       masterBus.connect(crusher);
       crusher.connect(filter);
