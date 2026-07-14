@@ -1,23 +1,21 @@
 import { useEffect, useState } from "react";
-import { useNavigate } from "@tanstack/react-router";
 import { Music4, Calendar, Headphones } from "lucide-react";
 import MiniPlayer from "@/components/MiniPlayer";
-import { supabase, listFusions, type Fusion } from "@/lib/supabase";
+import { ensureAnonymousSession, listFusions, type Fusion } from "@/lib/supabase";
 
 export default function Library() {
-  const navigate = useNavigate();
   const [fusions, setFusions] = useState<Fusion[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    supabase.auth.getSession().then(async ({ data }) => {
-      const user = data.session?.user;
-      if (!user) { navigate({ to: "/login" }); return; }
+    ensureAnonymousSession().then(async (session) => {
+      const user = session?.user;
+      if (!user) { setLoading(false); return; }
       const list = await listFusions(user.id);
       setFusions(list);
       setLoading(false);
     });
-  }, [navigate]);
+  }, []);
 
   if (loading) {
     return (

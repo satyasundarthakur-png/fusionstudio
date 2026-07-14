@@ -8,14 +8,12 @@ import {
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import PasswordGate from "@/components/PasswordGate";
 import Home from "@/pages/Home";
 import Studio from "@/pages/Studio";
 import Processing from "@/pages/Processing";
 import Results from "@/pages/Results";
 import Library from "@/pages/Library";
-import Login from "@/pages/Login";
-import Profile from "@/pages/Profile";
 
 const NAV_LINKS = [
   { to: "/studio", label: "Studio" },
@@ -23,19 +21,8 @@ const NAV_LINKS = [
 ];
 
 function NavBar() {
-  const [email, setEmail] = useState<string | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      setEmail(data.session?.user.email ?? null);
-    });
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setEmail(session?.user.email ?? null);
-    });
-    return () => sub.subscription.unsubscribe();
-  }, []);
 
   useEffect(() => {
     setMenuOpen(false);
@@ -62,19 +49,6 @@ function NavBar() {
               {l.label}
             </Link>
           ))}
-          {email ? (
-            <Link to="/profile" className={linkClass("/profile")}>
-              Profile
-            </Link>
-          ) : (
-            <Link
-              to="/login"
-              className="rounded-full px-4 py-1.5 text-midnight font-semibold text-sm transition-all hover:brightness-110 hover:shadow-glow-saffron"
-              style={{ background: "linear-gradient(135deg, #ef9f27, #f5c842)" }}
-            >
-              Sign in
-            </Link>
-          )}
         </nav>
 
         {/* Mobile trigger */}
@@ -108,24 +82,6 @@ function NavBar() {
               {l.label}
             </Link>
           ))}
-          {email ? (
-            <Link
-              to="/profile"
-              className={`rounded-lg px-3 py-2.5 ${
-                pathname === "/profile" ? "bg-saffron/10 text-saffron font-medium" : "text-white/65"
-              }`}
-            >
-              Profile
-            </Link>
-          ) : (
-            <Link
-              to="/login"
-              className="mt-1 rounded-lg px-3 py-2.5 text-center text-midnight font-semibold"
-              style={{ background: "linear-gradient(135deg, #ef9f27, #f5c842)" }}
-            >
-              Sign in
-            </Link>
-          )}
         </nav>
       </div>
     </header>
@@ -134,16 +90,18 @@ function NavBar() {
 
 function RootLayout() {
   return (
-    <div className="min-h-screen flex flex-col bg-midnight">
-      <NavBar />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-      <footer className="border-t border-white/[0.06] py-6 text-center text-xs text-white/30">
-        <span className="gradient-text-saffron font-logo mr-1">SwarFusion</span>
-        — Swar milaake, sur banaaye. Made for Indian voices.
-      </footer>
-    </div>
+    <PasswordGate>
+      <div className="min-h-screen flex flex-col bg-midnight">
+        <NavBar />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+        <footer className="border-t border-white/[0.06] py-6 text-center text-xs text-white/30">
+          <span className="gradient-text-saffron font-logo mr-1">SwarFusion</span>
+          — Swar milaake, sur banaaye. Made for Indian voices.
+        </footer>
+      </div>
+    </PasswordGate>
   );
 }
 
@@ -179,26 +137,12 @@ const libraryRoute = createRoute({
   component: Library,
 });
 
-const loginRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/login",
-  component: Login,
-});
-
-const profileRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/profile",
-  component: Profile,
-});
-
 const routeTree = rootRoute.addChildren([
   indexRoute,
   studioRoute,
   processingRoute,
   resultsRoute,
   libraryRoute,
-  loginRoute,
-  profileRoute,
 ]);
 
 export const router = createRouter({ routeTree });

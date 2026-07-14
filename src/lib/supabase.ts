@@ -86,6 +86,22 @@ export async function signOut() {
   return supabase.auth.signOut();
 }
 
+/**
+ * Ensures there's a Supabase session so storage uploads / RLS-protected
+ * tables work, without requiring a real account. Used behind the
+ * site-wide password gate in place of email/Google login.
+ */
+export async function ensureAnonymousSession() {
+  const { data } = await supabase.auth.getSession();
+  if (data.session?.user) return data.session;
+  const { data: signInData, error } = await supabase.auth.signInAnonymously();
+  if (error) {
+    console.error("ensureAnonymousSession error", error);
+    return null;
+  }
+  return signInData.session;
+}
+
 export async function getProfile(userId: string): Promise<Profile | null> {
   const { data, error } = await supabase
     .from("profiles")

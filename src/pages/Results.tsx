@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import FusionCard from "@/components/FusionCard";
 import VoiceCoach from "@/components/VoiceCoach";
 import { sessionStore } from "@/lib/sessionStore";
-import { supabase, saveFusion } from "@/lib/supabase";
+import { ensureAnonymousSession, saveFusion } from "@/lib/supabase";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 
 export default function Results() {
@@ -29,9 +29,9 @@ export default function Results() {
   const handleSaveSession = async () => {
     setSaving(true);
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
-      if (!user) { navigate({ to: "/login" }); return; }
+      const session = await ensureAnonymousSession();
+      const user = session?.user;
+      if (!user) { return; }
 
       const uploadedVariants = await Promise.all(
         result.variants.map(async (v) => {

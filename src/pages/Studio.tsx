@@ -26,7 +26,7 @@ import LanguageTags from "@/components/LanguageTags";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { createLiveEffectMonitor, type EffectPreset, type FusionVariantKey } from "@/lib/audioEngine";
 import { sessionStore } from "@/lib/sessionStore";
-import { supabase } from "@/lib/supabase";
+import { ensureAnonymousSession } from "@/lib/supabase";
 import { useSupabaseStorage } from "@/hooks/useSupabaseStorage";
 
 function formatTimer(sec: number) {
@@ -118,11 +118,10 @@ export default function Studio() {
     setSubmitError(null);
 
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const user = sessionData.session?.user;
+      const session = await ensureAnonymousSession();
+      const user = session?.user;
       if (!user) {
-        navigate({ to: "/login" });
-        return;
+        throw new Error("Could not start a session. Please refresh and try again.");
       }
 
       const voiceUpload = await upload("voice", recorder.audioBlob, user.id, "voice.webm");
