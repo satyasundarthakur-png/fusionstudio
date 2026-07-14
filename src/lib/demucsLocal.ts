@@ -127,36 +127,90 @@ export async function separateVocalsLocal(
   const right = resampleChannel(rightRaw, audioBuffer.sampleRate, TARGET_SAMPLE_RATE);
   const samplesPerStem = left.length;
 
-  const interleaved = new Float32Array(samplesPerStem * 2);
-  interleaved.set(left, 0);
-  interleaved.set(right, samplesPerStem);
-
   onProgress?.("Running AI separation in your browser (this can take a few minutes)…");
 
   const inputName = session.inputNames[0] ?? "input";
-  const inputTensor = new ort.Tensor("float32", interleaved, [1, 2, samplesPerStem]);
-  const feeds: Record<string, ort.Tensor> = { [inputName]: inputTensor };
-
-  const output = await session.run(feeds);
   const outputName = session.outputNames[0] ?? "output";
-  const stems = output[outputName].data as Float32Array;
+
+  // Run the model on short overlapping chunks instead of the whole track at
+  // once. Demucs' architecture needs a huge amount of working memory per
+  // sample fed in; a multi-minute track in a single pass reliably blows past
+  // the browser's WASM heap (std::bad_alloc / ERROR_CODE 6). Chunking keeps
+  // peak memory roughly constant no matter how long the track is.
+  const CHUNK_SECONDS = 8;
+  const OVERLAP_SECONDS = 1;
+  const chunkSize = CHUNK_SECONDS * TARGET_SAMPLE_RATE;
+  const overlapSize = OVERLAP_SECONDS * TARGET_SAMPLE_RATE;
+  const hopSize = chunkSize - overlapSize;
+
+  const outStems: Float32Array[] = Array.from(
+    { length: NUM_STEMS * 2 },
+    () => new Float32Array(samplesPerStem)
+  );
+  const weightSum = new Float32Array(samplesPerStem);
+
+  // Linear ramp used to crossfade overlapping chunk boundaries together.
+  const fadeRamp = new Float32Array(overlapSize);
+  for (let i = 0; i < overlapSize; i++) fadeRamp[i] = i / Math.max(1, overlapSize - 1);
+
+  let chunkIndex = 0;
+  const totalChunks = Math.max(1, Math.ceil(samplesPerStem / hopSize));
+
+  for (let start = 0; start < samplesPerStem; start += hopSize) {
+    const end = Math.min(start + chunkSize, samplesPerStem);
+    const len = end - start;
+
+    const chunkInterleaved = new Float32Array(len * 2);
+    chunkInterleaved.set(left.subarray(start, end), 0);
+    chunkInterleaved.set(right.subarray(start, end), len);
+
+    const inputTensor = new ort.Tensor("float32", chunkInterleaved, [1, 2, len]);
+    const output = await session.run({ [inputName]: inputTensor });
+    const stems = output[outputName].data as Float32Array;
+
+    // Per-sample weight for this chunk: ramp up over the leading overlap,
+    // full weight in the middle, ramp down over the trailing overlap — so
+    // adjacent chunks blend smoothly instead of clicking at the seams.
+    for (let i = 0; i < len; i++) {
+      let w = 1;
+      if (start > 0 && i < overlapSize) w = Math.min(w, fadeRamp[i]);
+      if (end < samplesPerStem && i >= len - overlapSize) {
+        w = Math.min(w, fadeRamp[len - 1 - i]);
+      }
+      weightSum[start + i] += w;
+      for (let s = 0; s < NUM_STEMS; s++) {
+        const chunkOff = s * 2 * len;
+        outStems[s * 2][start + i] += stems[chunkOff + i] * w;
+        outStems[s * 2 + 1][start + i] += stems[chunkOff + len + i] * w;
+      }
+    }
+
+    chunkIndex++;
+    onProgress?.(
+      "Running AI separation in your browser (this can take a few minutes)…",
+      (chunkIndex / totalChunks) * 100
+    );
+
+    if (end >= samplesPerStem) break;
+  }
+
+  // Normalize by accumulated crossfade weight.
+  for (let i = 0; i < samplesPerStem; i++) {
+    const w = weightSum[i] || 1;
+    for (let s = 0; s < NUM_STEMS * 2; s++) outStems[s][i] /= w;
+  }
 
   onProgress?.("Building instrumental and vocal stems…");
 
-  const vocalsOffset = VOCALS_STEM_INDEX * 2 * samplesPerStem;
-  const vocalsL = stems.slice(vocalsOffset, vocalsOffset + samplesPerStem);
-  const vocalsR = stems.slice(
-    vocalsOffset + samplesPerStem,
-    vocalsOffset + 2 * samplesPerStem
-  );
+  const vocalsL = outStems[VOCALS_STEM_INDEX * 2];
+  const vocalsR = outStems[VOCALS_STEM_INDEX * 2 + 1];
 
   const instL = new Float32Array(samplesPerStem);
   const instR = new Float32Array(samplesPerStem);
   for (let s = 0; s < NUM_STEMS - 1; s++) {
-    const off = s * 2 * samplesPerStem;
     for (let i = 0; i < samplesPerStem; i++) {
-      instL[i] += stems[off + i];
-      instR[i] += stems[off + samplesPerStem + i];
+      instL[i] += outStems[s * 2][i];
+      instR[i] += outStems[s * 2 + 1][i];
     }
   }
 
