@@ -278,3 +278,103 @@ input[type="range"]:hover::-webkit-slider-thumb {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ── Day / Night theme ─────────────────────────── */
+:root {
+  --surface-header: rgba(10, 10, 20, 0.88);
+  --surface-card: rgba(255, 255, 255, 0.03);
+}
+
+html.light body {
+  background-color: #f7f2e8;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 15% -5%, rgba(239, 159, 39, 0.10) 0%, transparent 65%),
+    radial-gradient(ellipse 55% 40% at 85% 105%, rgba(212, 83, 138, 0.09) 0%, transparent 65%);
+}
+
+html.light {
+  --surface-header: rgba(250, 245, 235, 0.85);
+  --surface-card: rgba(28, 22, 14, 0.04);
+  color-scheme: light;
+}
+
+html.light .bg-midnight {
+  background-color: #f7f2e8 !important;
+}
+
+/* Theme toggle switch */
+.theme-toggle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  transition: background 0.25s ease, border-color 0.25s ease, color 0.25s ease, transform 0.2s ease;
+}
+.theme-toggle:active {
+  transform: scale(0.92);
+}
+html.light .theme-toggle {
+  border-color: rgba(28, 22, 14, 0.15);
+  background: rgba(28, 22, 14, 0.05);
+  color: rgba(28, 22, 14, 0.7);
+}
+
+html.light .text-white\/25 { color: rgba(28, 22, 14, 0.25); }
+html.light .text-white\/30 { color: rgba(28, 22, 14, 0.3); }
+html.light .text-white\/35 { color: rgba(28, 22, 14, 0.35); }
+html.light .text-white\/40 { color: rgba(28, 22, 14, 0.4); }
+html.light .text-white\/45 { color: rgba(28, 22, 14, 0.45); }
+html.light .text-white\/50 { color: rgba(28, 22, 14, 0.5); }
+html.light .text-white\/55 { color: rgba(28, 22, 14, 0.55); }
+html.light .text-white\/60 { color: rgba(28, 22, 14, 0.6); }
+html.light .text-white\/65 { color: rgba(28, 22, 14, 0.65); }
+html.light .text-white\/70 { color: rgba(28, 22, 14, 0.7); }
+html.light .text-white\/75 { color: rgba(28, 22, 14, 0.75); }
+html.light .text-white\/80 { color: rgba(28, 22, 14, 0.8); }
+html.light .text-white\/85 { color: rgba(28, 22, 14, 0.85); }
+html.light .text-white\/90 { color: rgba(28, 22, 14, 0.9); }
+
+html.light .bg-white\/\[0\.02\] { background-color: rgba(28, 22, 14, 0.044); }
+html.light .bg-white\/\[0\.025\] { background-color: rgba(28, 22, 14, 0.055); }
+html.light .bg-white\/\[0\.03\] { background-color: rgba(28, 22, 14, 0.066); }
+html.light .bg-white\/\[0\.04\] { background-color: rgba(28, 22, 14, 0.088); }
+html.light .bg-white\/\[0\.07\] { background-color: rgba(28, 22, 14, 0.154); }
+html.light .bg-white\/\[0\.16\] { background-color: rgba(28, 22, 14, 0.352); }
+
+html.light .border-white\/10 { border-color: rgba(28, 22, 14, 0.1); }
+html.light .border-white\/15 { border-color: rgba(28, 22, 14, 0.15); }
+html.light .border-white\/20 { border-color: rgba(28, 22, 14, 0.2); }
+html.light .border-white\/25 { border-color: rgba(28, 22, 14, 0.25); }
+
+html.light .border-white\/\[0\.05\] { border-color: rgba(28, 22, 14, 0.05); }
+html.light .border-white\/\[0\.06\] { border-color: rgba(28, 22, 14, 0.06); }
+html.light .border-white\/\[0\.07\] { border-color: rgba(28, 22, 14, 0.07); }
+html.light .border-white\/\[0\.08\] { border-color: rgba(28, 22, 14, 0.08); }
+
+html.light .shadow-card {
+  box-shadow: 0 4px 24px rgba(28, 22, 14, 0.12);
+}
+
+/* ── Feature card colored glow wave (Home) ─────── */
+@keyframes glow-wave {
+  0%, 100% { box-shadow: 0 0 0 rgba(0,0,0,0); border-color: rgba(255,255,255,0.07); }
+  50%      { box-shadow: 0 0 32px 2px var(--wave-color, rgba(239,159,39,0.35)); border-color: var(--wave-border, rgba(239,159,39,0.35)); }
+}
+.glow-wave {
+  animation: glow-wave 5.5s ease-in-out infinite;
+}
+
+/* Combines the one-time entrance fade with the looping colored glow wave —
+   needed because two separate classes each setting the `animation`
+   shorthand would have the later one simply override the first instead of
+   both running together. */
+.feature-card-fx {
+  animation: fade-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both,
+             glow-wave 5.5s ease-in-out infinite;
+}

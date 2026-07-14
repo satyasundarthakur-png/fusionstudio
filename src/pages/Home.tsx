@@ -167,8 +167,12 @@ export default function Home() {
         {FEATURES.map((f, i) => (
           <div
             key={f.title}
-            className="tilt-card fade-up group rounded-2xl border border-white/[0.07] bg-white/[0.025] p-6 flex gap-4"
-            style={{ animationDelay: `${0.45 + i * 0.08}s` }}
+            className="tilt-card feature-card-fx group rounded-2xl border border-white/[0.07] bg-white/[0.025] p-6 flex gap-4"
+            style={{
+              animationDelay: `${0.45 + i * 0.08}s, ${i * 0.7}s`,
+              "--wave-color": `${f.accent}59`,
+              "--wave-border": `${f.accent}80`,
+            } as React.CSSProperties}
           >
             <div
               className="tilt-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"

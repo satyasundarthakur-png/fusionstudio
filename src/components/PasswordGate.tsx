@@ -45,7 +45,7 @@ export default function PasswordGate({ children }: { children: ReactNode }) {
 
       <div
         className="relative w-full max-w-sm rounded-2xl border border-white/[0.08] backdrop-blur-sm p-8 shadow-card text-center"
-        style={{ background: "rgba(255,255,255,0.03)" }}
+        style={{ background: "var(--surface-card)" }}
       >
         <div className="mx-auto mb-5 flex h-12 w-12 items-center justify-center rounded-full border border-saffron/30 bg-saffron/10">
           <Lock className="h-5 w-5 text-saffron" />

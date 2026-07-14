@@ -7,7 +7,7 @@ import {
   useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Sun, Moon } from "lucide-react";
 import PasswordGate from "@/components/PasswordGate";
 import Home from "@/pages/Home";
 import Studio from "@/pages/Studio";
@@ -18,6 +18,39 @@ const NAV_LINKS = [
   { to: "/", label: "Home" },
   { to: "/studio", label: "Studio" },
 ];
+
+const THEME_KEY = "swarfusion_theme";
+
+function useTheme() {
+  const [theme, setTheme] = useState<"dark" | "light">(() => {
+    if (typeof window === "undefined") return "dark";
+    return (localStorage.getItem(THEME_KEY) as "dark" | "light") || "dark";
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("light", theme === "light");
+    localStorage.setItem(THEME_KEY, theme);
+  }, [theme]);
+
+  return {
+    theme,
+    toggle: () => setTheme((t) => (t === "dark" ? "light" : "dark")),
+  };
+}
+
+function ThemeToggle() {
+  const { theme, toggle } = useTheme();
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label={theme === "dark" ? "Switch to day mode" : "Switch to night mode"}
+      className="theme-toggle"
+    >
+      {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+    </button>
+  );
+}
 
 function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -33,7 +66,7 @@ function NavBar() {
   return (
     <header
       className="sticky top-0 z-40 border-b border-white/[0.06]"
-      style={{ background: "rgba(10, 10, 20, 0.88)", backdropFilter: "blur(20px)" }}
+      style={{ background: "var(--surface-header)", backdropFilter: "blur(20px)" }}
     >
       <div className="max-w-6xl mx-auto flex items-center justify-between px-4 h-14">
         {/* Logo */}
@@ -48,18 +81,22 @@ function NavBar() {
               {l.label}
             </Link>
           ))}
+          <ThemeToggle />
         </nav>
 
-        {/* Mobile trigger */}
-        <button
-          type="button"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          aria-expanded={menuOpen}
-          onClick={() => setMenuOpen((v) => !v)}
-          className="sm:hidden flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/70 active:scale-95 transition-transform"
-        >
-          {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-        </button>
+        {/* Mobile trigger + theme toggle */}
+        <div className="sm:hidden flex items-center gap-2">
+          <ThemeToggle />
+          <button
+            type="button"
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            onClick={() => setMenuOpen((v) => !v)}
+            className="flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/70 active:scale-95 transition-transform"
+          >
+            {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+          </button>
+        </div>
       </div>
 
       {/* Mobile drawer */}
@@ -67,7 +104,7 @@ function NavBar() {
         className={`sm:hidden overflow-hidden transition-[max-height] duration-300 ease-in-out border-t border-white/[0.06] ${
           menuOpen ? "max-h-64" : "max-h-0 border-t-0"
         }`}
-        style={{ background: "rgba(10, 10, 20, 0.96)" }}
+        style={{ background: "var(--surface-header)" }}
       >
         <nav className="flex flex-col px-4 py-3 gap-1 text-sm">
           {NAV_LINKS.map((l) => (
