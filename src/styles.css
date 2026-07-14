@@ -113,6 +113,14 @@ body {
   width: 100%;
 }
 
+.nav-link-active {
+  color: #fff;
+}
+
+.nav-link-active::after {
+  width: 100%;
+}
+
 /* ── Step badge (Studio) ───────────────────────── */
 .step-badge {
   display: inline-flex;

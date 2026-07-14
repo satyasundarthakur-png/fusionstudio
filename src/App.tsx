@@ -4,8 +4,10 @@ import {
   createRoute,
   createRouter,
   Link,
+  useRouterState,
 } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { Menu, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import Home from "@/pages/Home";
 import Studio from "@/pages/Studio";
@@ -15,8 +17,15 @@ import Library from "@/pages/Library";
 import Login from "@/pages/Login";
 import Profile from "@/pages/Profile";
 
+const NAV_LINKS = [
+  { to: "/studio", label: "Studio" },
+  { to: "/library", label: "Library" },
+];
+
 function NavBar() {
   const [email, setEmail] = useState<string | null>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -27,6 +36,13 @@ function NavBar() {
     });
     return () => sub.subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  const linkClass = (to: string) =>
+    `nav-link ${pathname === to ? "nav-link-active" : ""}`;
 
   return (
     <header
@@ -39,22 +55,72 @@ function NavBar() {
           SwarFusion
         </Link>
 
-        {/* Nav */}
-        <nav className="flex items-center gap-6 text-sm">
-          <Link to="/studio" className="nav-link">
-            Studio
-          </Link>
-          <Link to="/library" className="nav-link">
-            Library
-          </Link>
+        {/* Desktop nav */}
+        <nav className="hidden sm:flex items-center gap-6 text-sm">
+          {NAV_LINKS.map((l) => (
+            <Link key={l.to} to={l.to} className={linkClass(l.to)}>
+              {l.label}
+            </Link>
+          ))}
           {email ? (
-            <Link to="/profile" className="nav-link">
+            <Link to="/profile" className={linkClass("/profile")}>
               Profile
             </Link>
           ) : (
             <Link
               to="/login"
               className="rounded-full px-4 py-1.5 text-midnight font-semibold text-sm transition-all hover:brightness-110 hover:shadow-glow-saffron"
+              style={{ background: "linear-gradient(135deg, #ef9f27, #f5c842)" }}
+            >
+              Sign in
+            </Link>
+          )}
+        </nav>
+
+        {/* Mobile trigger */}
+        <button
+          type="button"
+          aria-label={menuOpen ? "Close menu" : "Open menu"}
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen((v) => !v)}
+          className="sm:hidden flex h-9 w-9 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-white/70 active:scale-95 transition-transform"
+        >
+          {menuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+        </button>
+      </div>
+
+      {/* Mobile drawer */}
+      <div
+        className={`sm:hidden overflow-hidden transition-[max-height] duration-300 ease-in-out border-t border-white/[0.06] ${
+          menuOpen ? "max-h-64" : "max-h-0 border-t-0"
+        }`}
+        style={{ background: "rgba(10, 10, 20, 0.96)" }}
+      >
+        <nav className="flex flex-col px-4 py-3 gap-1 text-sm">
+          {NAV_LINKS.map((l) => (
+            <Link
+              key={l.to}
+              to={l.to}
+              className={`rounded-lg px-3 py-2.5 ${
+                pathname === l.to ? "bg-saffron/10 text-saffron font-medium" : "text-white/65"
+              }`}
+            >
+              {l.label}
+            </Link>
+          ))}
+          {email ? (
+            <Link
+              to="/profile"
+              className={`rounded-lg px-3 py-2.5 ${
+                pathname === "/profile" ? "bg-saffron/10 text-saffron font-medium" : "text-white/65"
+              }`}
+            >
+              Profile
+            </Link>
+          ) : (
+            <Link
+              to="/login"
+              className="mt-1 rounded-lg px-3 py-2.5 text-center text-midnight font-semibold"
               style={{ background: "linear-gradient(135deg, #ef9f27, #f5c842)" }}
             >
               Sign in
