@@ -325,20 +325,59 @@ html.light .theme-toggle {
   color: rgba(28, 22, 14, 0.7);
 }
 
-html.light .text-white\/25 { color: rgba(28, 22, 14, 0.25); }
-html.light .text-white\/30 { color: rgba(28, 22, 14, 0.3); }
-html.light .text-white\/35 { color: rgba(28, 22, 14, 0.35); }
-html.light .text-white\/40 { color: rgba(28, 22, 14, 0.4); }
-html.light .text-white\/45 { color: rgba(28, 22, 14, 0.45); }
-html.light .text-white\/50 { color: rgba(28, 22, 14, 0.5); }
-html.light .text-white\/55 { color: rgba(28, 22, 14, 0.55); }
-html.light .text-white\/60 { color: rgba(28, 22, 14, 0.6); }
-html.light .text-white\/65 { color: rgba(28, 22, 14, 0.65); }
-html.light .text-white\/70 { color: rgba(28, 22, 14, 0.7); }
-html.light .text-white\/75 { color: rgba(28, 22, 14, 0.75); }
-html.light .text-white\/80 { color: rgba(28, 22, 14, 0.8); }
-html.light .text-white\/85 { color: rgba(28, 22, 14, 0.85); }
-html.light .text-white\/90 { color: rgba(28, 22, 14, 0.9); }
+/* Fixed, WCAG-AA-compliant text tiers instead of mirroring the dark-mode
+   opacity value directly. Mirroring opacity 1:1 (e.g. text-white/30 ->
+   rgba(0,0,0,0.3)) looks fine on a dark background but fails contrast on a
+   light one — low-opacity "muted" text becomes pale gray-on-cream, well
+   under the 4.5:1 minimum for normal text. Every tier below is checked
+   against the #f7f2e8 page background:
+   #111111 ≈ 17.5:1, #2b2b2b ≈ 12.4:1, #4b4b4b ≈ 7.3:1 — all comfortably
+   above the AA 4.5:1 threshold, while still preserving the same visual
+   hierarchy (primary / secondary / muted) as dark mode. */
+html.light .text-white\/85,
+html.light .text-white\/90 { color: #111111; }
+
+html.light .text-white\/60,
+html.light .text-white\/65,
+html.light .text-white\/70,
+html.light .text-white\/75,
+html.light .text-white\/80 { color: #2b2b2b; }
+
+html.light .text-white\/25,
+html.light .text-white\/30,
+html.light .text-white\/35,
+html.light .text-white\/40,
+html.light .text-white\/45,
+html.light .text-white\/50,
+html.light .text-white\/55 { color: #4b4b4b; }
+
+/* Plain (non-opacity) white text, e.g. Button's secondary/magenta variants,
+   which sit on light-tinted surfaces in light mode and would otherwise be
+   near-invisible white-on-near-white. */
+html.light .text-white { color: #111111; }
+
+/* Nav links use hardcoded rgba(255,255,255,...) rather than a Tailwind
+   opacity class, so they need their own override. */
+html.light .nav-link { color: rgba(28, 22, 14, 0.75); }
+html.light .nav-link:hover,
+html.light .nav-link-active { color: #111111; }
+
+/* Headline gradient text: the saffron gradient reads fine on a dark
+   background but falls well under the 3:1 large-text minimum on a light
+   one (bright saffron ≈ 2:1 against cream). Switched to a deeper,
+   still-warm amber/burnt-orange gradient that clears 3:1 for large
+   headings while keeping the same brand hue. */
+html.light .gradient-text-saffron {
+  background: linear-gradient(130deg, #8a5410 0%, #b06a10 55%, #7a4a0d 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+/* Plain text-saffron (eyebrow tag, volume % labels, active nav link, small
+   icons) — same darkening as the gradient heading above, since these are
+   frequently small text and need the full 4.5:1 ratio, not just 3:1. */
+html.light .text-saffron { color: #8a5410; }
+
 
 html.light .bg-white\/\[0\.02\] { background-color: rgba(28, 22, 14, 0.044); }
 html.light .bg-white\/\[0\.025\] { background-color: rgba(28, 22, 14, 0.055); }
