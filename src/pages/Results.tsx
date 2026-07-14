@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import jsPDF from "jspdf";
-import { FileDown, RefreshCw } from "lucide-react";
+import { FileDown, RefreshCw, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FusionCard from "@/components/FusionCard";
 import VoiceCoach from "@/components/VoiceCoach";
@@ -89,7 +89,12 @@ export default function Results() {
       <VoiceCoach tips={result.aiTips} />
 
       {/* Start over */}
-      <div className="flex justify-center pt-2">
+      <div className="flex justify-center gap-2 pt-2">
+        <Button variant="ghost" asChild className="text-white/45 hover:text-white/70">
+          <Link to="/">
+            <Home className="h-3.5 w-3.5" /> Back to Home
+          </Link>
+        </Button>
         <Button variant="ghost" asChild className="text-white/45 hover:text-white/70">
           <Link to="/studio">
             <RefreshCw className="h-3.5 w-3.5" /> Start another fusion
