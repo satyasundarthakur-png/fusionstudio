@@ -5,12 +5,13 @@
     "": {
       "name": "swarfusion",
       "dependencies": {
+        "@breezystack/lamejs": "^1.2.7",
         "@radix-ui/react-collapsible": "^1.1.0",
         "@radix-ui/react-label": "^2.1.0",
         "@radix-ui/react-select": "^2.1.1",
         "@radix-ui/react-slider": "^1.2.0",
         "@radix-ui/react-slot": "^1.1.0",
-        "@supabase/supabase-js": "^2.110.5",
+        "@supabase/supabase-js": "^2.110.6",
         "@tanstack/react-router": "^1.58.0",
         "class-variance-authority": "^0.7.0",
         "clsx": "^2.1.1",
@@ -76,6 +77,8 @@
     "@babel/traverse": ["@babel/traverse@7.29.7", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@babel/traverse/-/traverse-7.29.7.tgz", { "dependencies": { "@babel/code-frame": "^7.29.7", "@babel/generator": "^7.29.7", "@babel/helper-globals": "^7.29.7", "@babel/parser": "^7.29.7", "@babel/template": "^7.29.7", "@babel/types": "^7.29.7", "debug": "^4.3.1" } }, "sha512-EhlfNQtZ+NK22w5BM61ciuiq1m58ed33Wr1Xan//ZRTy6hgjnwyCffRYwzsGXdASJSUJ1guZILsErh1eQcl+zw=="],
 
     "@babel/types": ["@babel/types@7.29.7", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@babel/types/-/types-7.29.7.tgz", { "dependencies": { "@babel/helper-string-parser": "^7.29.7", "@babel/helper-validator-identifier": "^7.29.7" } }, "sha512-4zBIxpPzowiZpusoFkyGVwakdRJUyuH5PxQ/PrqghfdFWWasvnCdPfQXHrenDai+gyLARulZjZowCOj6fjT4pA=="],
+
+    "@breezystack/lamejs": ["@breezystack/lamejs@1.2.7", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@breezystack/lamejs/-/lamejs-1.2.7.tgz", {}, "sha512-6wc7ck65ctA75Hq7FYHTtTvGnYs6msgdxiSUICQ+A01nVOWg6rqouZB8IdyteRlfpYYiFovkf67dIeOgWIUzTA=="],
 
     "@esbuild/aix-ppc64": ["@esbuild/aix-ppc64@0.21.5", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@esbuild/aix-ppc64/-/aix-ppc64-0.21.5.tgz", { "os": "aix", "cpu": "ppc64" }, "sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ=="],
 
@@ -269,19 +272,19 @@
 
     "@rollup/rollup-win32-x64-msvc": ["@rollup/rollup-win32-x64-msvc@4.62.2", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.62.2.tgz", { "os": "win32", "cpu": "x64" }, "sha512-BfzEnDJOt9T8M989/lA37EcJgat01wLRnoi5dQf3QzOH7jzpqTAzdDbVfRljVr5r+jzKqpbHeyOfAaXxAd0PAA=="],
 
-    "@supabase/auth-js": ["@supabase/auth-js@2.110.5", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/auth-js/-/auth-js-2.110.5.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-QSlI5CNeEefHP95/GbeMhNgr8aHEHiXFh8c1IWthYyI9ZzBwEigYzJFCw4Ff+GkL8OK9tArBmGGv6rpg5zLXSw=="],
+    "@supabase/auth-js": ["@supabase/auth-js@2.110.6", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/auth-js/-/auth-js-2.110.6.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-20v99wV4dodllbDOsD8AUVkQ7Ie+vwcgPeORY9YlC9YyJSmVgWff9gRTdgmyfE6GJHoSMJuQ4HZokSLHA/7YUg=="],
 
-    "@supabase/functions-js": ["@supabase/functions-js@2.110.5", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/functions-js/-/functions-js-2.110.5.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-nuQuoIoEGT8ukrwr6THlY5v50bSMJ2rqti1FFsGyDaC98POLmcFQVFFh23PVPhRsKWUxrFc0MpmEoHKa7CY4mg=="],
+    "@supabase/functions-js": ["@supabase/functions-js@2.110.6", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/functions-js/-/functions-js-2.110.6.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-Ih/I766vc579WfNzXSv1ERssCHKzaPj9rpST/j9wsMuUv+AfmRteKrJn3sVmrJIwQU5qJya2+aWTlvhf4WoMsg=="],
 
     "@supabase/phoenix": ["@supabase/phoenix@0.4.4", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/phoenix/-/phoenix-0.4.4.tgz", {}, "sha512-Gt0pqoXuIqX/8dvG0OKp/wMCobXNH3klNbUPBNyOfN0YA1IswrM3HyWFMOPk1Jy+BRaIyDPcFx4jLBwHNmlyfQ=="],
 
-    "@supabase/postgrest-js": ["@supabase/postgrest-js@2.110.5", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/postgrest-js/-/postgrest-js-2.110.5.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-eObfgBjxLPzFakwMpUmsv8nuNPOhoDhzzN8cwvEvGkxkmuRIZcOCYH9+DRbpKnxh7tgsBZW+KWtaZI2j98b2/g=="],
+    "@supabase/postgrest-js": ["@supabase/postgrest-js@2.110.6", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/postgrest-js/-/postgrest-js-2.110.6.tgz", { "dependencies": { "tslib": "2.8.1" } }, "sha512-kDNKncLtYBI/QT8HuVGSui/F3KrC3iWy7KM5M3EvWbEujf1cL+fdwMr2eeA8PEZUIPBeNbDxRzdFZo5t86iqUQ=="],
 
-    "@supabase/realtime-js": ["@supabase/realtime-js@2.110.5", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/realtime-js/-/realtime-js-2.110.5.tgz", { "dependencies": { "@supabase/phoenix": "0.4.4", "tslib": "2.8.1" } }, "sha512-VtOZxw5jfrc37KgIfFdp9SOFJjtvJ0qU+gT8CPQjL7cqy4DJlaTXacw5aBBogLZksqAI0YN67qhlDaMKFwfOuw=="],
+    "@supabase/realtime-js": ["@supabase/realtime-js@2.110.6", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/realtime-js/-/realtime-js-2.110.6.tgz", { "dependencies": { "@supabase/phoenix": "0.4.4", "tslib": "2.8.1" } }, "sha512-F2BhRmbC1dJlNA6cdjtbIWQJNV112TYbzEc0/0UFZYvKL52mL0PR0ZrlpIPEludV85WEmjA1RpjW2H5tNQka9g=="],
 
-    "@supabase/storage-js": ["@supabase/storage-js@2.110.5", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/storage-js/-/storage-js-2.110.5.tgz", { "dependencies": { "iceberg-js": "^0.8.1", "tslib": "2.8.1" } }, "sha512-7GkOZlrYknVGVPyijoDbu5OXGvQ2oQ6dkU0juAkIMPZ9QgtmJ8IPrxe76zGSbmzbaC1GdKw7pqeXEi2HT67sbA=="],
+    "@supabase/storage-js": ["@supabase/storage-js@2.110.6", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/storage-js/-/storage-js-2.110.6.tgz", { "dependencies": { "iceberg-js": "^0.8.1", "tslib": "2.8.1" } }, "sha512-DHS7Jy8MCu2sltDBjANu6oGjeUBUY+bowBnga6CySwtAF2BBKCTJGULnt7wyKPSLSXsoiCyzTwyU1r3SAx++Rg=="],
 
-    "@supabase/supabase-js": ["@supabase/supabase-js@2.110.5", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/supabase-js/-/supabase-js-2.110.5.tgz", { "dependencies": { "@supabase/auth-js": "2.110.5", "@supabase/functions-js": "2.110.5", "@supabase/postgrest-js": "2.110.5", "@supabase/realtime-js": "2.110.5", "@supabase/storage-js": "2.110.5" } }, "sha512-cAO1Nm+CCogRNVXN93bBkh0vjOdLM5e6J9gB/cHV9Lqni/gEmN2HJFrnn4NI33GYIfmlh4Wbm6siH+XXRgpexA=="],
+    "@supabase/supabase-js": ["@supabase/supabase-js@2.110.6", "https://europe-west1-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@supabase/supabase-js/-/supabase-js-2.110.6.tgz", { "dependencies": { "@supabase/auth-js": "2.110.6", "@supabase/functions-js": "2.110.6", "@supabase/postgrest-js": "2.110.6", "@supabase/realtime-js": "2.110.6", "@supabase/storage-js": "2.110.6" } }, "sha512-UJTAz1NUiSRI2mQYhUPvNMwqfkSucV1iSCcMJz8jgsSUTOfic9C3D6LGNOrH6KTvYUhxRvnf3ktq2Sd3IXIQzQ=="],
 
     "@tailwindcss/node": ["@tailwindcss/node@4.3.2", "https://europe-west4-npm.pkg.dev/lovable-core-prod/sandbox-npm-cache/@tailwindcss/node/-/node-4.3.2.tgz", { "dependencies": { "@jridgewell/remapping": "^2.3.5", "enhanced-resolve": "5.21.6", "jiti": "^2.7.0", "lightningcss": "1.32.0", "magic-string": "^0.30.21", "source-map-js": "^1.2.1", "tailwindcss": "4.3.2" } }, "sha512-yWP/sqEcBLaD8JuA6zNwxoYKr75qxTioYwlRwekj5Jr/I5GXnoJfjetH/psLUIv74cYTH2lBUEzBkinthoYcBg=="],
 
