@@ -369,25 +369,42 @@ html.light .gradient-text-saffron {
 html.light .text-saffron { color: #8a5410; }
 
 
-html.light .bg-white\/\[0\.02\] { background-color: rgba(28, 22, 14, 0.044); }
-html.light .bg-white\/\[0\.025\] { background-color: rgba(28, 22, 14, 0.055); }
-html.light .bg-white\/\[0\.03\] { background-color: rgba(28, 22, 14, 0.066); }
-html.light .bg-white\/\[0\.04\] { background-color: rgba(28, 22, 14, 0.088); }
-html.light .bg-white\/\[0\.07\] { background-color: rgba(28, 22, 14, 0.154); }
+/* Card/panel backgrounds: the alpha-mirrored dark tints (e.g. 4.4% dark
+   over cream) were barely distinguishable from the page background — every
+   section looked like "one long sheet." Bumped to genuinely visible warm-
+   off-white surfaces so cards read as distinct blocks, matching a card
+   rhythm similar to '#fafafa panels on white'. */
+html.light .bg-white\/\[0\.02\] { background-color: #f9f5ec; }
+html.light .bg-white\/\[0\.025\] { background-color: #f8f3e8; }
+html.light .bg-white\/\[0\.03\] { background-color: #f6f0e3; }
+html.light .bg-white\/\[0\.04\] { background-color: rgba(28, 22, 14, 0.09); }
+html.light .bg-white\/\[0\.07\] { background-color: rgba(28, 22, 14, 0.16); }
 html.light .bg-white\/\[0\.16\] { background-color: rgba(28, 22, 14, 0.352); }
 
-html.light .border-white\/10 { border-color: rgba(28, 22, 14, 0.1); }
-html.light .border-white\/15 { border-color: rgba(28, 22, 14, 0.15); }
-html.light .border-white\/20 { border-color: rgba(28, 22, 14, 0.2); }
-html.light .border-white\/25 { border-color: rgba(28, 22, 14, 0.25); }
+html.light .border-white\/10 { border-color: rgba(28, 22, 14, 0.14); }
+html.light .border-white\/15 { border-color: rgba(28, 22, 14, 0.18); }
+html.light .border-white\/20 { border-color: rgba(28, 22, 14, 0.24); }
+html.light .border-white\/25 { border-color: rgba(28, 22, 14, 0.3); }
 
-html.light .border-white\/\[0\.05\] { border-color: rgba(28, 22, 14, 0.05); }
-html.light .border-white\/\[0\.06\] { border-color: rgba(28, 22, 14, 0.06); }
-html.light .border-white\/\[0\.07\] { border-color: rgba(28, 22, 14, 0.07); }
-html.light .border-white\/\[0\.08\] { border-color: rgba(28, 22, 14, 0.08); }
+/* Card edges were nearly invisible (5-8% dark) — doubled so card
+   boundaries and section dividers actually read as lines, not just a
+   faint suggestion of one. */
+html.light .border-white\/\[0\.05\] { border-color: rgba(28, 22, 14, 0.1); }
+html.light .border-white\/\[0\.06\] { border-color: rgba(28, 22, 14, 0.12); }
+html.light .border-white\/\[0\.07\] { border-color: rgba(28, 22, 14, 0.14); }
+html.light .border-white\/\[0\.08\] { border-color: rgba(28, 22, 14, 0.16); }
+
+/* Headings get pure black (vs #111111 for regular bold text) for the
+   strongest possible separation from body copy. */
+html.light h1,
+html.light h2,
+html.light h3 {
+  color: #000000;
+}
+
 
 html.light .shadow-card {
-  box-shadow: 0 4px 24px rgba(28, 22, 14, 0.12);
+  box-shadow: 0 6px 20px rgba(28, 22, 14, 0.10), 0 1px 3px rgba(28, 22, 14, 0.08);
 }
 
 /* ── Feature card colored glow wave (Home) ─────── */
