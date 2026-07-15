@@ -45,6 +45,18 @@ const VARIANT_ICONS: Record<FusionVariantKey, typeof Disc3> = {
   pitchdown: ArrowDownCircle,
 };
 
+// Rainbow accent per variant — mirrors the palette used by FusionCard
+// on the Results screen so a variant reads as the same color across the
+// whole flow (selection → processing → playback).
+const VARIANT_ACCENTS: Record<FusionVariantKey, string> = {
+  studio: "#ef9f27",
+  cinematic: "#7c6aff",
+  acoustic: "#4ade80",
+  duet: "#d4538a",
+  lofi: "#fb923c",
+  pitchdown: "#38bdf8",
+};
+
 const SETTINGS_STORAGE_KEY = "swarfusion_studio_settings";
 
 type PersistedSettings = {
@@ -564,15 +576,29 @@ export default function Studio() {
             <div className="flex flex-wrap gap-2">
               {(["studio", "cinematic", "acoustic", "duet", "lofi", "pitchdown"] as FusionVariantKey[]).map((v) => {
                 const VariantIcon = VARIANT_ICONS[v];
+                const accent = VARIANT_ACCENTS[v];
+                const active = customVariants.includes(v);
                 return (
                   <button
                     key={v}
                     data-variant={v}
                     onClick={() => toggleCustomVariant(v)}
+                    style={
+                      active
+                        ? {
+                            background: accent,
+                            borderColor: accent,
+                            color: "#0a0a14",
+                            boxShadow: `0 0 18px ${accent}66`,
+                          }
+                        : {
+                            background: `${accent}14`,
+                            borderColor: `${accent}55`,
+                            color: accent,
+                          }
+                    }
                     className={`variant-pill inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all capitalize ${
-                      customVariants.includes(v)
-                        ? "bg-saffron text-midnight border-saffron shadow-glow-saffron/40 variant-pill-active"
-                        : "bg-white/[0.04] text-white/60 border-white/10 hover:border-white/25 hover:text-white/80"
+                      active ? "variant-pill-active" : "hover:brightness-125"
                     }`}
                   >
                     <VariantIcon className="h-3.5 w-3.5" />
