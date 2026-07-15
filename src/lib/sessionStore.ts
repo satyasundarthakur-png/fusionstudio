@@ -9,6 +9,7 @@ export type StudioSessionInput = {
   voiceVolumePct: number;
   musicVolumePct: number;
   autoBalanceVocal: boolean;
+  autoAlignKey: boolean;
   separationModel: "demucs" | "skip";
   quality: "high" | "lossless" | "standard";
   variantMode: "all" | "top3" | "custom";
@@ -43,6 +44,7 @@ const initialInput: StudioSessionInput = {
   voiceVolumePct: 75,
   musicVolumePct: 65,
   autoBalanceVocal: true,
+  autoAlignKey: true,
   separationModel: "demucs",
   quality: "high",
   variantMode: "all",

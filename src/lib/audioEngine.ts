@@ -260,7 +260,8 @@ async function renderVariant(
   voiceVolumePct: number,
   musicVolumePct: number,
   pitchShiftSemitones: number,
-  autoGainMultiplier: number
+  autoGainMultiplier: number,
+  keyShiftSemitones: number
 ): Promise<MixResult> {
   const [voiceBuf, instBuf, origVocalBuf] = await Promise.all([
     loadAudioBuffer(voiceUrl),
@@ -314,7 +315,23 @@ async function renderVariant(
     const { input: fxInput, output: fxOutput } = buildEffectChain(voiceEffectPreset);
 
     voicePlayer.connect(voiceGain);
-    voiceGain.connect(fxInput as unknown as Tone.InputNode);
+
+    // Key alignment: shifts the recorded/uploaded vocal by the detected
+    // semitone difference so it's in the same key as the instrumental,
+    // before any stylistic effect (reverb, warmth, etc.) is applied on top.
+    // This is what "detect the singer's key and align it with the music"
+    // actually means in audio terms — matching pitch/key, not compressing
+    // dynamics (that's what the limiter above is for) or time-stretching
+    // (tempo alignment is a separate, much harder problem this doesn't
+    // attempt). Skipped entirely when the shift is 0 to avoid an unneeded
+    // processing node.
+    if (keyShiftSemitones !== 0) {
+      const keyAlign = new Tone.PitchShift({ pitch: keyShiftSemitones });
+      voiceGain.connect(keyAlign);
+      keyAlign.connect(fxInput as unknown as Tone.InputNode);
+    } else {
+      voiceGain.connect(fxInput as unknown as Tone.InputNode);
+    }
     (fxOutput as unknown as Tone.ToneAudioNode).connect(masterBus);
 
     instPlayer.connect(musicGain);
@@ -376,6 +393,9 @@ export async function generateFusionVariants(params: {
   musicVolumePct: number;
   variants?: FusionVariantKey[];
   autoBalanceVocal?: boolean;
+  /** Semitones to shift the vocal by to match the instrumental's detected
+   * key (0 = no shift / feature disabled). */
+  keyShiftSemitones?: number;
   onVariantDone?: (variant: FusionVariantKey) => void;
   onAutoGainComputed?: (result: AutoGainResult) => void;
 }): Promise<MixResult[]> {
@@ -387,6 +407,7 @@ export async function generateFusionVariants(params: {
     musicVolumePct,
     variants = ["studio", "cinematic", "acoustic", "duet", "lofi", "pitchdown"],
     autoBalanceVocal = true,
+    keyShiftSemitones = 0,
     onVariantDone,
     onAutoGainComputed,
   } = params;
@@ -419,7 +440,8 @@ export async function generateFusionVariants(params: {
       voiceVolumePct,
       musicVolumePct,
       variant === "pitchdown" ? -2 : 0,
-      autoGainMultiplier
+      autoGainMultiplier,
+      keyShiftSemitones
     );
     results.push(mix);
     onVariantDone?.(variant);

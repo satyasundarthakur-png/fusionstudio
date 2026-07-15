@@ -70,6 +70,7 @@ export function useAudioMixer() {
       variantKeys?: FusionVariantKey[];
       skipSeparation?: boolean;
       autoBalanceVocal?: boolean;
+      autoAlignKey?: boolean;
     }) => {
       const {
         voiceUrl,
@@ -79,6 +80,7 @@ export function useAudioMixer() {
         variantKeys,
         skipSeparation,
         autoBalanceVocal = true,
+        autoAlignKey = true,
       } = params;
 
       setIsProcessing(true);
@@ -161,25 +163,29 @@ export function useAudioMixer() {
 
         // Step 3: pitch alignment / key detection
         setStep("align", "active");
-        try {
-          const ctx = new (window.AudioContext ||
-            (window as any).webkitAudioContext)();
-          const [voiceBuf, instBuf] = await Promise.all([
-            fetch(voiceUrl)
-              .then((r) => r.arrayBuffer())
-              .then((ab) => ctx.decodeAudioData(ab)),
-            fetch(noVocalsUrl)
-              .then((r) => r.arrayBuffer())
-              .then((ab) => ctx.decodeAudioData(ab)),
-          ]);
-          const voicePitch = detectPitchAutocorrelation(voiceBuf);
-          const instPitch = detectPitchAutocorrelation(instBuf);
-          const shift = Math.round(semitoneDiff(voicePitch, instPitch));
-          setDetectedKeyShiftSemitones(
-            Number.isFinite(shift) ? Math.max(-6, Math.min(6, shift)) : 0
-          );
-          await ctx.close();
-        } catch {
+        let keyShiftSemitones = 0;
+        if (autoAlignKey) {
+          try {
+            const ctx = new (window.AudioContext ||
+              (window as any).webkitAudioContext)();
+            const [voiceBuf, instBuf] = await Promise.all([
+              fetch(voiceUrl)
+                .then((r) => r.arrayBuffer())
+                .then((ab) => ctx.decodeAudioData(ab)),
+              fetch(noVocalsUrl)
+                .then((r) => r.arrayBuffer())
+                .then((ab) => ctx.decodeAudioData(ab)),
+            ]);
+            const voicePitch = detectPitchAutocorrelation(voiceBuf);
+            const instPitch = detectPitchAutocorrelation(instBuf);
+            const shift = Math.round(semitoneDiff(voicePitch, instPitch));
+            keyShiftSemitones = Number.isFinite(shift) ? Math.max(-6, Math.min(6, shift)) : 0;
+            setDetectedKeyShiftSemitones(keyShiftSemitones);
+            await ctx.close();
+          } catch {
+            setDetectedKeyShiftSemitones(0);
+          }
+        } else {
           setDetectedKeyShiftSemitones(0);
         }
         setStep("align", "done");
@@ -195,6 +201,7 @@ export function useAudioMixer() {
           musicVolumePct,
           variants: variantKeys,
           autoBalanceVocal,
+          keyShiftSemitones,
           onAutoGainComputed: (result) => {
             setAutoGainInfo(result);
           },

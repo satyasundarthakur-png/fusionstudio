@@ -42,6 +42,7 @@ export default function Processing() {
         variantKeys,
         skipSeparation: input.separationModel === "skip",
         autoBalanceVocal: input.autoBalanceVocal,
+        autoAlignKey: input.autoAlignKey,
       });
 
       if (results.length === 0) return;
@@ -167,6 +168,16 @@ export default function Processing() {
               </button>
             </div>
           </div>
+        )}
+        {mixer.detectedKeyShiftSemitones !== 0 && (
+          <p className="text-xs text-white/50 mt-4 rounded-lg bg-white/[0.03] border border-white/[0.07] px-3 py-2">
+            🎼 Auto-aligned: your vocal was shifted by{" "}
+            <span className="text-magenta font-mono">
+              {mixer.detectedKeyShiftSemitones > 0 ? "+" : ""}
+              {mixer.detectedKeyShiftSemitones} semitone{Math.abs(mixer.detectedKeyShiftSemitones) === 1 ? "" : "s"}
+            </span>{" "}
+            to match the track's key.
+          </p>
         )}
         {mixer.autoGainInfo && Math.abs(mixer.autoGainInfo.adjustmentDb) >= 0.5 && (
           <p className="text-xs text-white/50 mt-4 rounded-lg bg-white/[0.03] border border-white/[0.07] px-3 py-2">

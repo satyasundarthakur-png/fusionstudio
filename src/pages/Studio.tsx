@@ -51,6 +51,7 @@ type PersistedSettings = {
   voiceVolumePct: number;
   musicVolumePct: number;
   autoBalanceVocal: boolean;
+  autoAlignKey: boolean;
   separationModel: "demucs" | "skip";
   quality: "high" | "lossless" | "standard";
   variantMode: "all" | "top3" | "custom";
@@ -62,6 +63,7 @@ const DEFAULT_SETTINGS: PersistedSettings = {
   voiceVolumePct: 75,
   musicVolumePct: 65,
   autoBalanceVocal: true,
+  autoAlignKey: true,
   separationModel: "demucs",
   quality: "high",
   variantMode: "all",
@@ -142,6 +144,7 @@ export default function Studio() {
   const [voiceVolumePct, setVoiceVolumePct] = useState(() => loadSavedSettings().voiceVolumePct);
   const [musicVolumePct, setMusicVolumePct] = useState(() => loadSavedSettings().musicVolumePct);
   const [autoBalanceVocal, setAutoBalanceVocal] = useState(() => loadSavedSettings().autoBalanceVocal);
+  const [autoAlignKey, setAutoAlignKey] = useState(() => loadSavedSettings().autoAlignKey);
   const [downloadingMp3, setDownloadingMp3] = useState(false);
   const [separationModel, setSeparationModel] = useState<"demucs" | "skip">(() => loadSavedSettings().separationModel);
   const [quality, setQuality] = useState<"high" | "lossless" | "standard">(() => loadSavedSettings().quality);
@@ -157,6 +160,7 @@ export default function Studio() {
       voiceVolumePct,
       musicVolumePct,
       autoBalanceVocal,
+      autoAlignKey,
       separationModel,
       quality,
       variantMode,
@@ -169,7 +173,7 @@ export default function Studio() {
       // Storage can fail (private browsing, quota) — not worth surfacing
       // an error for a non-critical convenience feature.
     }
-  }, [voiceVolumePct, musicVolumePct, autoBalanceVocal, separationModel, quality, variantMode, customVariants, languages]);
+  }, [voiceVolumePct, musicVolumePct, autoBalanceVocal, autoAlignKey, separationModel, quality, variantMode, customVariants, languages]);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -237,6 +241,7 @@ export default function Studio() {
         voiceVolumePct,
         musicVolumePct,
         autoBalanceVocal,
+        autoAlignKey,
         separationModel,
         quality,
         variantMode,
@@ -509,6 +514,24 @@ export default function Studio() {
                 Measures how loud your recording is compared to the track and automatically boosts a
                 quiet vocal to match — applied before the sliders above, which still work as a final
                 creative adjustment on top.
+              </span>
+            </span>
+          </label>
+
+          {/* Auto-align key toggle */}
+          <label className="flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoAlignKey}
+              onChange={(e) => setAutoAlignKey(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-magenta"
+            />
+            <span>
+              <span className="block text-sm text-white/80 font-medium">Auto-align vocal key</span>
+              <span className="block text-xs text-white/40 mt-0.5">
+                Detects your voice's pitch vs. the track's key and automatically shifts your vocal
+                (up to ±6 semitones) so they're in tune together. Detection is a best-effort estimate
+                on a single audio window — turn this off if a mix sounds off-key rather than in tune.
               </span>
             </span>
           </label>
