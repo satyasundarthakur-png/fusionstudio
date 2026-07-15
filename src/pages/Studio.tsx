@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Mic,
@@ -9,6 +9,12 @@ import {
   Sparkles,
   Music2,
   Download,
+  Disc3,
+  Film,
+  Guitar,
+  Users,
+  Radio,
+  ArrowDownCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
@@ -29,6 +35,60 @@ import { createLiveEffectMonitor, type EffectPreset, type FusionVariantKey } fro
 import { blobToMp3Blob } from "@/lib/mp3Encode";
 import { downloadBlob } from "@/lib/utils";
 import { sessionStore } from "@/lib/sessionStore";
+
+const VARIANT_ICONS: Record<FusionVariantKey, typeof Disc3> = {
+  studio: Disc3,
+  cinematic: Film,
+  acoustic: Guitar,
+  duet: Users,
+  lofi: Radio,
+  pitchdown: ArrowDownCircle,
+};
+
+const SETTINGS_STORAGE_KEY = "swarfusion_studio_settings";
+
+type PersistedSettings = {
+  voiceVolumePct: number;
+  musicVolumePct: number;
+  autoBalanceVocal: boolean;
+  separationModel: "demucs" | "skip";
+  quality: "high" | "lossless" | "standard";
+  variantMode: "all" | "top3" | "custom";
+  customVariants: FusionVariantKey[];
+  languages: string[];
+};
+
+const DEFAULT_SETTINGS: PersistedSettings = {
+  voiceVolumePct: 75,
+  musicVolumePct: 65,
+  autoBalanceVocal: true,
+  separationModel: "demucs",
+  quality: "high",
+  variantMode: "all",
+  customVariants: ["studio", "cinematic", "acoustic"],
+  languages: [],
+};
+
+/**
+ * Loads previously-saved Studio settings (sliders, quality, variant
+ * selection, languages) so a refresh doesn't reset them to defaults.
+ *
+ * This deliberately only covers settings, not the actual voice
+ * recording/uploaded track file — those are Blobs/Files, which can't be
+ * meaningfully persisted through localStorage (size limits, not
+ * serializable) without a real backend, which this app intentionally
+ * doesn't have. So a refresh still clears your recording/upload, but your
+ * dialed-in settings will be waiting for you next time.
+ */
+function loadSavedSettings(): PersistedSettings {
+  try {
+    const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
+    if (!raw) return DEFAULT_SETTINGS;
+    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+  } catch {
+    return DEFAULT_SETTINGS;
+  }
+}
 
 function formatTimer(sec: number) {
   const m = Math.floor(sec / 60);
@@ -79,15 +139,37 @@ export default function Studio() {
   const [trackMeta, setTrackMeta] = useState<{ name: string; sizeMB: string } | null>(null);
   const [dragActive, setDragActive] = useState(false);
 
-  const [voiceVolumePct, setVoiceVolumePct] = useState(75);
-  const [musicVolumePct, setMusicVolumePct] = useState(65);
-  const [autoBalanceVocal, setAutoBalanceVocal] = useState(true);
+  const [voiceVolumePct, setVoiceVolumePct] = useState(() => loadSavedSettings().voiceVolumePct);
+  const [musicVolumePct, setMusicVolumePct] = useState(() => loadSavedSettings().musicVolumePct);
+  const [autoBalanceVocal, setAutoBalanceVocal] = useState(() => loadSavedSettings().autoBalanceVocal);
   const [downloadingMp3, setDownloadingMp3] = useState(false);
-  const [separationModel, setSeparationModel] = useState<"demucs" | "skip">("demucs");
-  const [quality, setQuality] = useState<"high" | "lossless" | "standard">("high");
-  const [variantMode, setVariantMode] = useState<"all" | "top3" | "custom">("all");
-  const [customVariants, setCustomVariants] = useState<FusionVariantKey[]>(["studio", "cinematic", "acoustic"]);
-  const [languages, setLanguages] = useState<string[]>([]);
+  const [separationModel, setSeparationModel] = useState<"demucs" | "skip">(() => loadSavedSettings().separationModel);
+  const [quality, setQuality] = useState<"high" | "lossless" | "standard">(() => loadSavedSettings().quality);
+  const [variantMode, setVariantMode] = useState<"all" | "top3" | "custom">(() => loadSavedSettings().variantMode);
+  const [customVariants, setCustomVariants] = useState<FusionVariantKey[]>(() => loadSavedSettings().customVariants);
+  const [languages, setLanguages] = useState<string[]>(() => loadSavedSettings().languages);
+
+  // Auto-save settings whenever they change, so a refresh restores your
+  // dial-in instead of resetting to defaults. (Your recording/uploaded
+  // track itself can't be saved this way — see loadSavedSettings above.)
+  useEffect(() => {
+    const settings: PersistedSettings = {
+      voiceVolumePct,
+      musicVolumePct,
+      autoBalanceVocal,
+      separationModel,
+      quality,
+      variantMode,
+      customVariants,
+      languages,
+    };
+    try {
+      localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(settings));
+    } catch {
+      // Storage can fail (private browsing, quota) — not worth surfacing
+      // an error for a non-critical convenience feature.
+    }
+  }, [voiceVolumePct, musicVolumePct, autoBalanceVocal, separationModel, quality, variantMode, customVariants, languages]);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -190,6 +272,52 @@ export default function Studio() {
         <p className="text-white/45 text-sm">
           Record over any track you upload — AI will separate the instrumental and mix your voice into studio-quality fusions.
         </p>
+      </div>
+
+      {/* Tagline banner with a soundwave motif */}
+      <div className="fade-up relative overflow-hidden rounded-2xl border border-white/[0.06] bg-white/[0.02] px-5 py-3.5 flex items-center gap-3" style={{ animationDelay: "0.02s" }}>
+        <svg width="56" height="24" viewBox="0 0 56 24" className="shrink-0 opacity-70">
+          <path
+            d="M0 12 Q7 2, 14 12 T28 12 T42 12 T56 12"
+            fill="none"
+            stroke="url(#tagline-wave)"
+            strokeWidth="2"
+            strokeLinecap="round"
+          />
+          <defs>
+            <linearGradient id="tagline-wave" x1="0" y1="0" x2="56" y2="0">
+              <stop offset="0%" stopColor="#ef9f27" />
+              <stop offset="100%" stopColor="#d4538a" />
+            </linearGradient>
+          </defs>
+        </svg>
+        <p className="text-sm text-white/60 italic">
+          <span className="text-white/85 font-medium not-italic">स्वर मिलाके, सुर बनाएं</span> — Swar milaake, sur banaaye.
+        </p>
+      </div>
+
+      {/* Step progress indicator */}
+      <div className="fade-up flex items-center justify-center gap-2 sm:gap-4 py-1" style={{ animationDelay: "0.04s" }}>
+        {[
+          { n: 1, label: "Record", accent: "#ef9f27" },
+          { n: 2, label: "Upload", accent: "#d4538a" },
+          { n: 3, label: "Fusion", accent: "#4fb8a8" },
+        ].map((s, i, arr) => (
+          <div key={s.n} className="flex items-center gap-2 sm:gap-4">
+            <div className="flex items-center gap-2">
+              <span
+                className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold shrink-0"
+                style={{ background: `${s.accent}20`, border: `1.5px solid ${s.accent}70`, color: s.accent }}
+              >
+                {s.n}
+              </span>
+              <span className="text-xs font-medium text-white/55 hidden sm:inline">{s.label}</span>
+            </div>
+            {i < arr.length - 1 && (
+              <span className="h-px w-6 sm:w-10" style={{ background: `linear-gradient(90deg, ${s.accent}60, ${arr[i + 1].accent}60)` }} />
+            )}
+          </div>
+        ))}
       </div>
 
       {/* Step 1 + 2 row */}
@@ -432,19 +560,23 @@ export default function Studio() {
 
           {variantMode === "custom" && (
             <div className="flex flex-wrap gap-2">
-              {(["studio", "cinematic", "acoustic", "duet", "lofi", "pitchdown"] as FusionVariantKey[]).map((v) => (
-                <button
-                  key={v}
-                  onClick={() => toggleCustomVariant(v)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all capitalize ${
-                    customVariants.includes(v)
-                      ? "bg-saffron text-midnight border-saffron shadow-glow-saffron/40"
-                      : "bg-white/[0.04] text-white/60 border-white/10 hover:border-white/25 hover:text-white/80"
-                  }`}
-                >
-                  {v}
-                </button>
-              ))}
+              {(["studio", "cinematic", "acoustic", "duet", "lofi", "pitchdown"] as FusionVariantKey[]).map((v) => {
+                const VariantIcon = VARIANT_ICONS[v];
+                return (
+                  <button
+                    key={v}
+                    onClick={() => toggleCustomVariant(v)}
+                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all capitalize ${
+                      customVariants.includes(v)
+                        ? "bg-saffron text-midnight border-saffron shadow-glow-saffron/40"
+                        : "bg-white/[0.04] text-white/60 border-white/10 hover:border-white/25 hover:text-white/80"
+                    }`}
+                  >
+                    <VariantIcon className="h-3.5 w-3.5" />
+                    {v}
+                  </button>
+                );
+              })}
             </div>
           )}
 
