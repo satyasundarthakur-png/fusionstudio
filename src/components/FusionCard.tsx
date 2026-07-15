@@ -1,6 +1,7 @@
 import { Download, Share2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import MiniPlayer from "@/components/MiniPlayer";
+import { downloadBlob } from "@/lib/utils";
 import type { MixResult } from "@/lib/audioEngine";
 
 type FusionCardProps = {
@@ -63,10 +64,7 @@ export default function FusionCard({ mix, isFeatured, songName }: FusionCardProp
   };
 
   const handleDownload = () => {
-    const a = document.createElement("a");
-    a.href = mix.url;
-    a.download = `SwarFusion-${mix.variant}-${songName.replace(/\s+/g, "_")}.wav`;
-    a.click();
+    downloadBlob(mix.blob, `SwarFusion-${mix.variant}-${songName.replace(/\s+/g, "_")}.wav`);
   };
 
   const handleShareWhatsApp = () => {
