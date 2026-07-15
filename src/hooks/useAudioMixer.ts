@@ -5,6 +5,7 @@ import {
   semitoneDiff,
   type FusionVariantKey,
   type MixResult,
+  type AutoGainResult,
 } from "@/lib/audioEngine";
 import { separateVocalsLocal, type TimeoutExtensionOffer } from "@/lib/demucsLocal";
 
@@ -43,6 +44,7 @@ export function useAudioMixer() {
   );
   const [separationWarning, setSeparationWarning] = useState<string | null>(null);
   const [timeoutOffer, setTimeoutOffer] = useState<TimeoutExtensionOffer | null>(null);
+  const [autoGainInfo, setAutoGainInfo] = useState<AutoGainResult | null>(null);
   const timeoutDecisionRef = useRef<((extend: boolean) => void) | null>(null);
 
   /** Called by the Processing UI when the person clicks "Add 5 more minutes" or "Stop". */
@@ -67,6 +69,7 @@ export function useAudioMixer() {
       musicVolumePct: number;
       variantKeys?: FusionVariantKey[];
       skipSeparation?: boolean;
+      autoBalanceVocal?: boolean;
     }) => {
       const {
         voiceUrl,
@@ -75,6 +78,7 @@ export function useAudioMixer() {
         musicVolumePct,
         variantKeys,
         skipSeparation,
+        autoBalanceVocal = true,
       } = params;
 
       setIsProcessing(true);
@@ -82,6 +86,7 @@ export function useAudioMixer() {
       setPipeline(initialPipelineState);
       setInstrumentalBlob(null);
       setVocalsBlob(null);
+      setAutoGainInfo(null);
 
       try {
         // Step 1: upload (assumed already done by caller before invoking run;
@@ -189,6 +194,10 @@ export function useAudioMixer() {
           voiceVolumePct,
           musicVolumePct,
           variants: variantKeys,
+          autoBalanceVocal,
+          onAutoGainComputed: (result) => {
+            setAutoGainInfo(result);
+          },
         });
         setStep("mix", "done");
 
@@ -230,6 +239,7 @@ export function useAudioMixer() {
     separationWarning,
     timeoutOffer,
     respondToTimeoutOffer,
+    autoGainInfo,
     run,
   };
 }

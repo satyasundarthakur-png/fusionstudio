@@ -41,6 +41,7 @@ export default function Processing() {
         musicVolumePct: input.musicVolumePct,
         variantKeys,
         skipSeparation: input.separationModel === "skip",
+        autoBalanceVocal: input.autoBalanceVocal,
       });
 
       if (results.length === 0) return;
@@ -166,6 +167,16 @@ export default function Processing() {
               </button>
             </div>
           </div>
+        )}
+        {mixer.autoGainInfo && Math.abs(mixer.autoGainInfo.adjustmentDb) >= 0.5 && (
+          <p className="text-xs text-white/50 mt-4 rounded-lg bg-white/[0.03] border border-white/[0.07] px-3 py-2">
+            🎚️ Auto-balanced: your vocal was {mixer.autoGainInfo.adjustmentDb > 0 ? "boosted" : "reduced"} by{" "}
+            <span className="text-saffron font-mono">
+              {mixer.autoGainInfo.adjustmentDb > 0 ? "+" : ""}
+              {mixer.autoGainInfo.adjustmentDb.toFixed(1)}dB
+            </span>{" "}
+            to match the track's loudness.
+          </p>
         )}
         {mixer.separationWarning && (
           <p className="text-xs text-amber-400 mt-4 rounded-lg bg-amber-500/10 border border-amber-500/20 px-3 py-2">

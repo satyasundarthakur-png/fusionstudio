@@ -8,6 +8,7 @@ export type StudioSessionInput = {
   trackMeta: { name: string; sizeMB: number; durationSec: number } | null;
   voiceVolumePct: number;
   musicVolumePct: number;
+  autoBalanceVocal: boolean;
   separationModel: "demucs" | "skip";
   quality: "high" | "lossless" | "standard";
   variantMode: "all" | "top3" | "custom";
@@ -41,6 +42,7 @@ const initialInput: StudioSessionInput = {
   trackMeta: null,
   voiceVolumePct: 75,
   musicVolumePct: 65,
+  autoBalanceVocal: true,
   separationModel: "demucs",
   quality: "high",
   variantMode: "all",

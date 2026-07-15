@@ -65,6 +65,7 @@ export default function Studio() {
 
   const [voiceVolumePct, setVoiceVolumePct] = useState(75);
   const [musicVolumePct, setMusicVolumePct] = useState(65);
+  const [autoBalanceVocal, setAutoBalanceVocal] = useState(true);
   const [separationModel, setSeparationModel] = useState<"demucs" | "skip">("demucs");
   const [quality, setQuality] = useState<"high" | "lossless" | "standard">("high");
   const [variantMode, setVariantMode] = useState<"all" | "top3" | "custom">("all");
@@ -136,6 +137,7 @@ export default function Studio() {
         },
         voiceVolumePct,
         musicVolumePct,
+        autoBalanceVocal,
         separationModel,
         quality,
         variantMode,
@@ -335,6 +337,24 @@ export default function Studio() {
               />
             </div>
           </div>
+
+          {/* Auto-balance toggle */}
+          <label className="flex items-start gap-3 rounded-xl border border-white/[0.06] bg-white/[0.02] px-4 py-3 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={autoBalanceVocal}
+              onChange={(e) => setAutoBalanceVocal(e.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-saffron"
+            />
+            <span>
+              <span className="block text-sm text-white/80 font-medium">Auto-balance vocal volume</span>
+              <span className="block text-xs text-white/40 mt-0.5">
+                Measures how loud your recording is compared to the track and automatically boosts a
+                quiet vocal to match — applied before the sliders above, which still work as a final
+                creative adjustment on top.
+              </span>
+            </span>
+          </label>
 
           {/* Divider */}
           <div className="border-t border-white/[0.05]" />

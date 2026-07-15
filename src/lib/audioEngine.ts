@@ -84,6 +84,81 @@ async function loadAudioBuffer(url: string): Promise<AudioBuffer> {
   return ctx.decodeAudioData(arrayBuffer);
 }
 
+/**
+ * Measures the RMS (root-mean-square) loudness of an AudioBuffer, averaged
+ * across channels — a reasonable proxy for "how loud does this sound"
+ * (closer to perceived loudness than peak amplitude, which is thrown off by
+ * single transient spikes). Silence-only regions are skipped from the
+ * average so a long quiet intro doesn't make a track look quieter than it
+ * actually is during the parts where someone's actually singing.
+ */
+function measureRms(buffer: AudioBuffer): number {
+  const SILENCE_THRESHOLD = 0.0025;
+  let sumSquares = 0;
+  let count = 0;
+
+  for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+    const data = buffer.getChannelData(ch);
+    // Sampling every Nth frame is plenty for a loudness estimate and much
+    // faster than reading every single sample on a multi-minute track.
+    const stride = Math.max(1, Math.floor(data.length / 200_000));
+    for (let i = 0; i < data.length; i += stride) {
+      const v = data[i];
+      if (Math.abs(v) < SILENCE_THRESHOLD) continue;
+      sumSquares += v * v;
+      count++;
+    }
+  }
+
+  if (count === 0) return 0;
+  return Math.sqrt(sumSquares / count);
+}
+
+/** Converts a linear amplitude ratio to decibels. */
+function ratioToDb(ratio: number): number {
+  return 20 * Math.log10(Math.max(ratio, 1e-6));
+}
+
+export type AutoGainResult = {
+  /** Multiplier to apply to the vocal's gain so its loudness matches the
+   * instrumental's. 1 = no change. */
+  multiplier: number;
+  /** Same adjustment expressed in dB, for display ("boosted your vocal by
+   * +8.2dB to match the track"). */
+  adjustmentDb: number;
+};
+
+/**
+ * Compares the measured loudness of the recorded/uploaded vocal against the
+ * instrumental track and returns a gain multiplier that would bring the
+ * vocal up (or down) to match — the actual fix for "the uploaded music is
+ * loud but my recorded voice is quiet". Clamped to a sane range so a
+ * near-silent recording doesn't get amplified into pure noise, and capped
+ * on the downward side too in case the vocal was recorded hotter than the
+ * track.
+ */
+export function computeAutoVocalGain(
+  voiceBuf: AudioBuffer,
+  instrumentalBuf: AudioBuffer
+): AutoGainResult {
+  const voiceRms = measureRms(voiceBuf);
+  const instRms = measureRms(instrumentalBuf);
+
+  if (voiceRms <= 0 || instRms <= 0) {
+    return { multiplier: 1, adjustmentDb: 0 };
+  }
+
+  const rawMultiplier = instRms / voiceRms;
+  // Clamp: don't boost more than +18dB (a near-silent recording would
+  // otherwise get amplified into a wash of hiss/noise-floor) and don't cut
+  // more than -9dB (a vocal recorded hot shouldn't be buried).
+  const MIN_MULTIPLIER = 10 ** (-9 / 20);
+  const MAX_MULTIPLIER = 10 ** (18 / 20);
+  const multiplier = Math.min(MAX_MULTIPLIER, Math.max(MIN_MULTIPLIER, rawMultiplier));
+
+  return { multiplier, adjustmentDb: ratioToDb(multiplier) };
+}
+
 export type EffectChainOptions = {
   preset: EffectPreset;
   voiceVolumeDb: number; // -60..0
@@ -184,7 +259,8 @@ async function renderVariant(
   originalVocalUrl: string | null,
   voiceVolumePct: number,
   musicVolumePct: number,
-  pitchShiftSemitones: number
+  pitchShiftSemitones: number,
+  autoGainMultiplier: number
 ): Promise<MixResult> {
   const [voiceBuf, instBuf, origVocalBuf] = await Promise.all([
     loadAudioBuffer(voiceUrl),
@@ -199,9 +275,19 @@ async function renderVariant(
   const result = await Tone.Offline(({ transport }) => {
     const voicePlayer = new Tone.Player(voiceBuf);
     const instPlayer = new Tone.Player(instBuf);
-    const voiceGain = new Tone.Gain(voiceVolumePct / 100);
+    // The user's manual volume slider is layered on top of the measured
+    // auto-gain adjustment, not instead of it — auto-gain corrects for the
+    // mismatch between how loud the recording and the track actually are;
+    // the slider is then the person's creative choice on top of a
+    // level-matched starting point.
+    const voiceGain = new Tone.Gain((voiceVolumePct / 100) * autoGainMultiplier);
     const musicGain = new Tone.Gain(musicVolumePct / 100);
     const masterBus = new Tone.Gain(1);
+    // A limiter on the master bus catches any clipping introduced by
+    // boosting a quiet vocal up to match a loud track — without this, a
+    // recording that needed +12dB of auto-gain could push the mix over 0dB
+    // and distort.
+    const limiter = new Tone.Limiter(-1);
 
     let voiceEffectPreset: EffectPreset = "clean";
     switch (variant) {
@@ -248,16 +334,19 @@ async function renderVariant(
       const filter = new Tone.Filter({ frequency: 3400, type: "lowpass" });
       masterBus.connect(crusher);
       crusher.connect(filter);
-      filter.toDestination();
+      filter.connect(limiter);
+      limiter.toDestination();
     } else if (variant === "pitchdown") {
       const instPitch = new Tone.PitchShift({ pitch: -2 });
       masterBus.disconnect();
       instPlayer.disconnect();
       musicGain.connect(instPitch);
       instPitch.connect(masterBus);
-      masterBus.toDestination();
+      masterBus.connect(limiter);
+      limiter.toDestination();
     } else {
-      masterBus.toDestination();
+      masterBus.connect(limiter);
+      limiter.toDestination();
     }
 
     voicePlayer.start(0);
@@ -286,7 +375,9 @@ export async function generateFusionVariants(params: {
   voiceVolumePct: number;
   musicVolumePct: number;
   variants?: FusionVariantKey[];
+  autoBalanceVocal?: boolean;
   onVariantDone?: (variant: FusionVariantKey) => void;
+  onAutoGainComputed?: (result: AutoGainResult) => void;
 }): Promise<MixResult[]> {
   const {
     voiceUrl,
@@ -295,8 +386,28 @@ export async function generateFusionVariants(params: {
     voiceVolumePct,
     musicVolumePct,
     variants = ["studio", "cinematic", "acoustic", "duet", "lofi", "pitchdown"],
+    autoBalanceVocal = true,
     onVariantDone,
+    onAutoGainComputed,
   } = params;
+
+  // Measure loudness once up front (not per-variant) so a quiet recording
+  // gets boosted to match the track's level automatically, before any of
+  // the person's manual volume sliders are applied on top.
+  let autoGainMultiplier = 1;
+  if (autoBalanceVocal) {
+    try {
+      const [voiceBuf, instBuf] = await Promise.all([
+        loadAudioBuffer(voiceUrl),
+        loadAudioBuffer(instrumentalUrl),
+      ]);
+      const autoGain = computeAutoVocalGain(voiceBuf, instBuf);
+      autoGainMultiplier = autoGain.multiplier;
+      onAutoGainComputed?.(autoGain);
+    } catch (err) {
+      console.warn("Auto vocal gain measurement failed, using unadjusted volume.", err);
+    }
+  }
 
   const results: MixResult[] = [];
   for (const variant of variants) {
@@ -307,7 +418,8 @@ export async function generateFusionVariants(params: {
       originalVocalUrl,
       voiceVolumePct,
       musicVolumePct,
-      variant === "pitchdown" ? -2 : 0
+      variant === "pitchdown" ? -2 : 0,
+      autoGainMultiplier
     );
     results.push(mix);
     onVariantDone?.(variant);
