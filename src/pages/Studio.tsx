@@ -8,6 +8,7 @@ import {
   FileAudio,
   Sparkles,
   Music2,
+  Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,8 @@ import EffectChips from "@/components/EffectChips";
 import LanguageTags from "@/components/LanguageTags";
 import { useVoiceRecorder } from "@/hooks/useVoiceRecorder";
 import { createLiveEffectMonitor, type EffectPreset, type FusionVariantKey } from "@/lib/audioEngine";
+import { blobToMp3Blob } from "@/lib/mp3Encode";
+import { downloadBlob } from "@/lib/utils";
 import { sessionStore } from "@/lib/sessionStore";
 
 function formatTimer(sec: number) {
@@ -55,6 +58,19 @@ export default function Studio() {
   const navigate = useNavigate();
   const recorder = useVoiceRecorder();
 
+  const handleDownloadVoiceMp3 = useCallback(async () => {
+    if (!recorder.audioBlob) return;
+    setDownloadingMp3(true);
+    try {
+      const mp3Blob = await blobToMp3Blob(recorder.audioBlob);
+      downloadBlob(mp3Blob, "my-voice.mp3");
+    } catch (err) {
+      console.error("MP3 encoding failed", err);
+    } finally {
+      setDownloadingMp3(false);
+    }
+  }, [recorder.audioBlob]);
+
   const [effectPreset, setEffectPreset] = useState<EffectPreset>("clean");
   const monitorRef = useRef<ReturnType<typeof createLiveEffectMonitor> | null>(null);
   const [monitoring, setMonitoring] = useState(false);
@@ -66,6 +82,7 @@ export default function Studio() {
   const [voiceVolumePct, setVoiceVolumePct] = useState(75);
   const [musicVolumePct, setMusicVolumePct] = useState(65);
   const [autoBalanceVocal, setAutoBalanceVocal] = useState(true);
+  const [downloadingMp3, setDownloadingMp3] = useState(false);
   const [separationModel, setSeparationModel] = useState<"demucs" | "skip">("demucs");
   const [quality, setQuality] = useState<"high" | "lossless" | "standard">("high");
   const [variantMode, setVariantMode] = useState<"all" | "top3" | "custom">("all");
@@ -236,7 +253,17 @@ export default function Studio() {
             </div>
 
             {recorder.audioUrl && (
-              <audio controls src={recorder.audioUrl} className="w-full h-8 opacity-80" />
+              <div className="space-y-2">
+                <audio controls src={recorder.audioUrl} className="w-full h-8 opacity-80" />
+                <button
+                  onClick={handleDownloadVoiceMp3}
+                  disabled={downloadingMp3}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/65 hover:text-white/90 hover:border-white/25 transition-colors disabled:opacity-50"
+                >
+                  <Download className="h-3.5 w-3.5" />
+                  {downloadingMp3 ? "Encoding MP3…" : "Download as MP3"}
+                </button>
+              </div>
             )}
             {recorder.error && <p className="text-xs text-red-400">{recorder.error}</p>}
             <p className="text-xs text-white/30">
