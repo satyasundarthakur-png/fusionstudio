@@ -31,16 +31,6 @@ body {
   100% { background-position: 200% center; }
 }
 
-/* ── Tanpura / hero ambient ────────────────────── */
-@keyframes string-pulse {
-  0%, 100% { opacity: 0.25; filter: blur(1px); }
-  50%       { opacity: 0.55; filter: blur(0px); }
-}
-
-.tanpura-string {
-  animation: string-pulse 5s ease-in-out infinite;
-}
-
 @keyframes orb-float {
   0%, 100% { transform: translateY(0) scale(1); opacity: 0.7; }
   50%       { transform: translateY(-20px) scale(1.06); opacity: 1; }
@@ -404,9 +394,6 @@ html.light .shadow-card {
 @keyframes glow-wave {
   0%, 100% { box-shadow: 0 0 0 rgba(0,0,0,0); border-color: rgba(255,255,255,0.07); }
   50%      { box-shadow: 0 0 32px 2px var(--wave-color, rgba(239,159,39,0.35)); border-color: var(--wave-border, rgba(239,159,39,0.35)); }
-}
-.glow-wave {
-  animation: glow-wave 5.5s ease-in-out infinite;
 }
 
 /* Combines the one-time entrance fade with the looping colored glow wave —
