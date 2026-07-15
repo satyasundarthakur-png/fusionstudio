@@ -1,4 +1,4 @@
-import { Mp3Encoder } from "lamejs";
+import { Mp3Encoder } from "@breezystack/lamejs";
 
 /** Converts a Float32 PCM channel (-1..1 range) to 16-bit signed integer PCM. */
 function floatTo16BitPcm(input: Float32Array): Int16Array {
@@ -11,11 +11,15 @@ function floatTo16BitPcm(input: Float32Array): Int16Array {
 }
 
 /**
- * Encodes a decoded AudioBuffer to an MP3 Blob, entirely in the browser
- * (lamejs is a pure-JS port of the LAME encoder — no server, no WASM model
- * download, works offline). Used so recordings/downloads can be delivered
- * as the far more universally-compatible .mp3 instead of .webm, which some
- * devices, older media players, and non-browser apps don't handle well.
+ * Encodes a decoded AudioBuffer to an MP3 Blob, entirely in the browser.
+ *
+ * Note: this uses the `@breezystack/lamejs` fork, not the original `lamejs`
+ * npm package — the original's published CommonJS build is broken (its
+ * `Lame.js` references `MPEGMode` as an implicit global that's never
+ * actually defined in that build, so constructing `Mp3Encoder` throws
+ * `ReferenceError: MPEGMode is not defined` immediately). This fork fixes
+ * that packaging bug while keeping the same pure-JS, no-WASM, no-server
+ * encoding approach.
  */
 export function audioBufferToMp3Blob(buffer: AudioBuffer, kbps = 128): Blob {
   const channels = Math.min(2, buffer.numberOfChannels);
@@ -25,7 +29,7 @@ export function audioBufferToMp3Blob(buffer: AudioBuffer, kbps = 128): Blob {
   const left = floatTo16BitPcm(buffer.getChannelData(0));
   const right = channels > 1 ? floatTo16BitPcm(buffer.getChannelData(1)) : undefined;
 
-  const chunks: Int8Array[] = [];
+  const chunks: Uint8Array[] = [];
   const blockSize = 1152; // lamejs's required per-call frame size
 
   for (let i = 0; i < left.length; i += blockSize) {
