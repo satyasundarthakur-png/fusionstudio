@@ -45,6 +45,18 @@ const VARIANT_ICONS: Record<FusionVariantKey, typeof Disc3> = {
   pitchdown: ArrowDownCircle,
 };
 
+// Rainbow accent per variant — mirrors the palette used by FusionCard
+// on the Results screen so a variant reads as the same color across the
+// whole flow (selection → processing → playback).
+const VARIANT_ACCENTS: Record<FusionVariantKey, string> = {
+  studio: "#ef9f27",
+  cinematic: "#7c6aff",
+  acoustic: "#4ade80",
+  duet: "#d4538a",
+  lofi: "#fb923c",
+  pitchdown: "#38bdf8",
+};
+
 const SETTINGS_STORAGE_KEY = "swarfusion_studio_settings";
 
 type PersistedSettings = {
