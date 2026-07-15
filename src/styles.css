@@ -402,6 +402,62 @@ html.light h3 {
   color: #000000;
 }
 
+/* ── Soft muted rainbow accents (light mode only) ──
+   A full 6-hue rainbow, but deliberately desaturated and mid-toned rather
+   than neon-bright — closer to a watercolor/pastel wash than a saturated
+   spectrum, so it adds variety without fighting the light background. */
+html.light .variant-pill[data-variant="studio"] {
+  border-color: #d99a6c99;
+  color: #8a5a2e;
+  background: #f7e9da;
+}
+html.light .variant-pill[data-variant="cinematic"] {
+  border-color: #c99ad999;
+  color: #6a4a8a;
+  background: #efe4f7;
+}
+html.light .variant-pill[data-variant="acoustic"] {
+  border-color: #8fbf9099;
+  color: #3f6b42;
+  background: #e3f0e4;
+}
+html.light .variant-pill[data-variant="duet"] {
+  border-color: #e08a9d99;
+  color: #a3405a;
+  background: #fbe4ea;
+}
+html.light .variant-pill[data-variant="lofi"] {
+  border-color: #d9c26c99;
+  color: #8a6f1f;
+  background: #f7f0da;
+}
+html.light .variant-pill[data-variant="pitchdown"] {
+  border-color: #6ca8d999;
+  color: #2e5f8a;
+  background: #dcecf7;
+}
+/* Selected state keeps a solid, slightly deeper fill of the same muted hue
+   rather than switching to the brand saffron — so picking a variant still
+   reads within its own color family. */
+html.light .variant-pill-active[data-variant="studio"] { background: #e8ceac; border-color: #c98a4d; color: #5a3814; }
+html.light .variant-pill-active[data-variant="cinematic"] { background: #dcc7ec; border-color: #a373c9; color: #452f63; }
+html.light .variant-pill-active[data-variant="acoustic"] { background: #c6e2c8; border-color: #6fa373; color: #294b2b; }
+html.light .variant-pill-active[data-variant="duet"] { background: #f3c3d0; border-color: #d16688; color: #6b2438; }
+html.light .variant-pill-active[data-variant="lofi"] { background: #ecdca0; border-color: #c9a83d; color: #5c4912; }
+html.light .variant-pill-active[data-variant="pitchdown"] { background: #b9d7ec; border-color: #4d84c9; color: #1c3c5c; }
+
+/* Tagline banner soundwave gradient: 2-tone saffron→magenta by default
+   (dark mode), a fuller but still muted 4-hue rainbow in light mode. */
+.tagline-stop-1 { stop-color: #ef9f27; }
+.tagline-stop-2 { stop-color: #ef9f27; }
+.tagline-stop-3 { stop-color: #d4538a; }
+.tagline-stop-4 { stop-color: #d4538a; }
+
+html.light .tagline-stop-1 { stop-color: #d99a6c; }
+html.light .tagline-stop-2 { stop-color: #c9a83d; }
+html.light .tagline-stop-3 { stop-color: #6fa373; }
+html.light .tagline-stop-4 { stop-color: #6ca8d9; }
+
 
 html.light .shadow-card {
   box-shadow: 0 6px 20px rgba(28, 22, 14, 0.10), 0 1px 3px rgba(28, 22, 14, 0.08);

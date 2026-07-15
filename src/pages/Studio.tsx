@@ -286,8 +286,10 @@ export default function Studio() {
           />
           <defs>
             <linearGradient id="tagline-wave" x1="0" y1="0" x2="56" y2="0">
-              <stop offset="0%" stopColor="#ef9f27" />
-              <stop offset="100%" stopColor="#d4538a" />
+              <stop offset="0%" className="tagline-stop-1" />
+              <stop offset="33%" className="tagline-stop-2" />
+              <stop offset="66%" className="tagline-stop-3" />
+              <stop offset="100%" className="tagline-stop-4" />
             </linearGradient>
           </defs>
         </svg>
@@ -565,10 +567,11 @@ export default function Studio() {
                 return (
                   <button
                     key={v}
+                    data-variant={v}
                     onClick={() => toggleCustomVariant(v)}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all capitalize ${
+                    className={`variant-pill inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold border transition-all capitalize ${
                       customVariants.includes(v)
-                        ? "bg-saffron text-midnight border-saffron shadow-glow-saffron/40"
+                        ? "bg-saffron text-midnight border-saffron shadow-glow-saffron/40 variant-pill-active"
                         : "bg-white/[0.04] text-white/60 border-white/10 hover:border-white/25 hover:text-white/80"
                     }`}
                   >
