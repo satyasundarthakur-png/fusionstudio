@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
 import { useNavigate } from "@tanstack/react-router";
+import { Download } from "lucide-react";
 import ProcessingPipeline from "@/components/ProcessingPipeline";
 import { useAudioMixer } from "@/hooks/useAudioMixer";
 import { sessionStore } from "@/lib/sessionStore";
 import { getCoachingTips } from "@/lib/groq";
+import { downloadBlob } from "@/lib/utils";
 import { FUSION_VARIANT_LABELS, type FusionVariantKey } from "@/lib/audioEngine";
 
 const TOP3: FusionVariantKey[] = ["studio", "cinematic", "acoustic"];
@@ -54,6 +56,7 @@ export default function Processing() {
       sessionStore.setResult({
         instrumentalUrl: mixer.instrumentalUrl,
         instrumentalBlob: mixer.instrumentalBlob,
+        vocalsBlob: mixer.vocalsBlob,
         variants: results,
         aiTips: tips,
         separationWarning: mixer.separationWarning,
@@ -116,6 +119,31 @@ export default function Processing() {
           separationStatus={mixer.separationStatus}
           separationProgressPct={mixer.separationProgressPct}
         />
+        {(mixer.instrumentalBlob || mixer.vocalsBlob) && (
+          <div className="mt-4 rounded-lg bg-teal-500/8 border border-teal-500/20 px-3 py-3 space-y-2">
+            <p className="text-xs text-white/60">
+              Separation is done — grab these now if you just want the stems (no need to wait for the full fusion):
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {mixer.instrumentalBlob && (
+                <button
+                  onClick={() => downloadBlob(mixer.instrumentalBlob!, "instrumental.wav")}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/70 hover:text-white/95 hover:border-white/25 transition-colors"
+                >
+                  <Download className="h-3.5 w-3.5" /> Instrumental (music only)
+                </button>
+              )}
+              {mixer.vocalsBlob && (
+                <button
+                  onClick={() => downloadBlob(mixer.vocalsBlob!, "vocals.wav")}
+                  className="inline-flex items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-xs text-white/70 hover:text-white/95 hover:border-white/25 transition-colors"
+                >
+                  <Download className="h-3.5 w-3.5" /> Original vocals (isolated)
+                </button>
+              )}
+            </div>
+          </div>
+        )}
         {mixer.timeoutOffer && (
           <div className="mt-4 rounded-lg bg-saffron/10 border border-saffron/25 px-3 py-3 space-y-2.5">
             <p className="text-xs text-white/70">

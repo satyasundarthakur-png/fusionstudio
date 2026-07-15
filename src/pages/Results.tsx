@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { useNavigate, Link } from "@tanstack/react-router";
 import jsPDF from "jspdf";
-import { FileDown, RefreshCw, Home } from "lucide-react";
+import { FileDown, RefreshCw, Home, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import FusionCard from "@/components/FusionCard";
 import VoiceCoach from "@/components/VoiceCoach";
 import { sessionStore } from "@/lib/sessionStore";
+import { downloadBlob } from "@/lib/utils";
 
 export default function Results() {
   const navigate = useNavigate();
@@ -70,6 +71,32 @@ export default function Results() {
       {result.separationWarning && (
         <div className="rounded-xl border border-amber-500/20 bg-amber-500/8 px-4 py-3 text-sm text-amber-400">
           {result.separationWarning}
+        </div>
+      )}
+
+      {(result.instrumentalBlob || result.vocalsBlob) && (
+        <div className="rounded-xl border border-teal-500/20 bg-teal-500/8 px-4 py-3 space-y-2">
+          <p className="text-sm text-white/60">Separated stems, if you want them for other projects:</p>
+          <div className="flex flex-wrap gap-2">
+            {result.instrumentalBlob && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => downloadBlob(result.instrumentalBlob!, "instrumental.wav")}
+              >
+                <Download className="h-3.5 w-3.5" /> Instrumental
+              </Button>
+            )}
+            {result.vocalsBlob && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => downloadBlob(result.vocalsBlob!, "vocals.wav")}
+              >
+                <Download className="h-3.5 w-3.5" /> Original vocals
+              </Button>
+            )}
+          </div>
         </div>
       )}
 

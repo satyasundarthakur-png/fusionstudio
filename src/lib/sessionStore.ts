@@ -22,6 +22,10 @@ export type StudioSessionResult = {
    * once the tab closes, so we keep the Blob around too (e.g. for future
    * "download instrumental" support). */
   instrumentalBlob: Blob | null;
+  /** The isolated original vocals (before your recording was mixed in), if
+   * separation ran successfully — lets the person download just the stems
+   * without waiting for the full fusion pipeline. */
+  vocalsBlob: Blob | null;
   variants: MixResult[];
   aiTips: string[];
   /** Set when local Demucs separation failed (e.g. low-memory device) and
@@ -47,6 +51,7 @@ const initialInput: StudioSessionInput = {
 const initialResult: StudioSessionResult = {
   instrumentalUrl: null,
   instrumentalBlob: null,
+  vocalsBlob: null,
   variants: [],
   aiTips: [],
   separationWarning: null,

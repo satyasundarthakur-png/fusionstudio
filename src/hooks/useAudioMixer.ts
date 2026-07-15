@@ -32,6 +32,7 @@ export function useAudioMixer() {
   const [variants, setVariants] = useState<MixResult[]>([]);
   const [instrumentalUrl, setInstrumentalUrl] = useState<string | null>(null);
   const [instrumentalBlob, setInstrumentalBlob] = useState<Blob | null>(null);
+  const [vocalsBlob, setVocalsBlob] = useState<Blob | null>(null);
   const [detectedKeyShiftSemitones, setDetectedKeyShiftSemitones] =
     useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -79,6 +80,8 @@ export function useAudioMixer() {
       setIsProcessing(true);
       setError(null);
       setPipeline(initialPipelineState);
+      setInstrumentalBlob(null);
+      setVocalsBlob(null);
 
       try {
         // Step 1: upload (assumed already done by caller before invoking run;
@@ -121,6 +124,7 @@ export function useAudioMixer() {
             noVocalsUrl = sep.noVocalsUrl;
             vocalsUrl = sep.vocalsUrl;
             setInstrumentalBlob(sep.noVocalsBlob);
+            setVocalsBlob(sep.vocalsBlob);
           } catch (sepErr) {
             // Local Demucs can fail on devices without enough memory for the
             // model (std::bad_alloc / ERROR_CODE 6). Rather than failing the
@@ -136,12 +140,14 @@ export function useAudioMixer() {
             noVocalsUrl = trackUrl;
             vocalsUrl = null;
             setInstrumentalBlob(null);
+            setVocalsBlob(null);
           }
         } else {
           // Separation skipped — the "instrumental" is just the original
           // track, which is already uploaded to Storage; no extra blob to
           // persist.
           setInstrumentalBlob(null);
+          setVocalsBlob(null);
         }
         setSeparationStatus(null);
         setSeparationProgressPct(null);
@@ -215,6 +221,7 @@ export function useAudioMixer() {
     variants,
     instrumentalUrl,
     instrumentalBlob,
+    vocalsBlob,
     detectedKeyShiftSemitones,
     isProcessing,
     error,
